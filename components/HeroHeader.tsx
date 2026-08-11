@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, Camera, Award, Zap } from "lucide-react";
+import { Camera, Zap, ShieldCheck } from "lucide-react";
 
 export default function HeroHeader() {
   return (
-    <div className="relative text-center max-w-4xl mx-auto space-y-4 pt-6 pb-2">
+    <div className="relative text-center max-w-4xl mx-auto space-y-4 pt-4 pb-2">
       {/* Top Event Tag Pill */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
@@ -14,9 +14,9 @@ export default function HeroHeader() {
         className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-xs sm:text-sm font-semibold shadow-xl"
       >
         <span className="flex h-2 w-2 rounded-full bg-[#FF3B00] animate-ping" />
-        <span className="gradient-text-goa font-bold">HH GOA 2026</span>
+        <span className="gradient-text-goa font-bold">HACKER HOUSE GOA 2026</span>
         <span className="text-slate-500">•</span>
-        <span className="text-slate-300">Official Social Frame Generator</span>
+        <span className="text-slate-300">Official Social PFP Frame Generator</span>
       </motion.div>
 
       {/* Main Headline */}
@@ -26,7 +26,8 @@ export default function HeroHeader() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight"
       >
-        Level Up Your <span className="gradient-text-goa">HH Goa 2026</span> Presence 🚀
+        Hacker House Goa 2026 <br />
+        <span className="gradient-text-goa">Profile Picture Frame</span> 🚀
       </motion.h1>
 
       {/* Subtitle */}
@@ -36,7 +37,7 @@ export default function HeroHeader() {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto font-normal leading-relaxed"
       >
-        Upload your photo to instantly create a branded <strong className="text-white">Profile Frame</strong> or an official <strong className="text-[#00F2FE]">Builder Pass Badge</strong>. Download in high-res & flex on X with <span className="text-orange-400 font-semibold">#FrameInGoa</span>.
+        Upload your photo to instantly create your branded <strong className="text-white">Hacker House Goa 2026</strong> profile picture frame. Download in high-res & flex on X with <span className="text-orange-400 font-bold">#FrameInGoa</span>.
       </motion.p>
 
       {/* Highlights Bar */}
@@ -48,15 +49,15 @@ export default function HeroHeader() {
       >
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900/50 border border-slate-800">
           <Zap className="w-3.5 h-3.5 text-amber-400" />
-          <span>Auto Face Center</span>
+          <span>Auto Face Centering</span>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900/50 border border-slate-800">
           <Camera className="w-3.5 h-3.5 text-cyan-400" />
           <span>Supports iPhone HEIC</span>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900/50 border border-slate-800">
-          <Award className="w-3.5 h-3.5 text-orange-400" />
-          <span>Fun Builder Titles</span>
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Zero Signup Required</span>
         </div>
       </motion.div>
     </div>

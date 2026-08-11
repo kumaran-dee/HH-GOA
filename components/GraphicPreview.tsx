@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Download, Share2, Copy, Check, Sparkles, RefreshCw, ExternalLink } from "lucide-react";
+import { Download, Share2, Copy, Check, Sparkles, RefreshCw } from "lucide-react";
 
 interface GraphicPreviewProps {
   imageDataUri: string;
   shareUrl: string;
   fileName: string;
-  format: "pfp" | "builder-card";
+  format?: string;
   onReset: () => void;
 }
 
@@ -17,7 +17,6 @@ export default function GraphicPreview({
   imageDataUri,
   shareUrl,
   fileName,
-  format,
   onReset,
 }: GraphicPreviewProps) {
   const [copied, setCopied] = useState(false);
@@ -25,8 +24,8 @@ export default function GraphicPreview({
   const triggerConfetti = () => {
     try {
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 90,
+        spread: 80,
         origin: { y: 0.6 },
         colors: ["#FF3B00", "#FF8C00", "#00F2FE", "#4FACFE"],
       });
@@ -56,7 +55,7 @@ export default function GraphicPreview({
   };
 
   // Pre-filled X (Twitter) tweet intent URL
-  const tweetText = encodeURIComponent("Ready for HH Goa 2026 🚀 #FrameInGoa");
+  const tweetText = encodeURIComponent("Ready for Hacker House Goa 2026 🚀 #FrameInGoa");
   const encodedShareUrl = encodeURIComponent(shareUrl);
   const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedShareUrl}`;
 
@@ -76,10 +75,10 @@ export default function GraphicPreview({
       <div className="flex items-center justify-between w-full border-b border-slate-800 pb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-orange-400" />
-          <h3 className="text-lg font-extrabold text-white">Your Graphic is Ready!</h3>
+          <h3 className="text-lg font-extrabold text-white">Your PFP Frame is Ready!</h3>
         </div>
         <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-          High-Res 100% PNG
+          High-Res 1024x1024 PNG
         </span>
       </div>
 
@@ -88,8 +87,8 @@ export default function GraphicPreview({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageDataUri}
-          alt="Generated HH Goa 2026 Graphic"
-          className="max-h-[460px] w-auto object-contain rounded-xl shadow-2xl"
+          alt="Hacker House Goa 2026 Profile Frame"
+          className="max-h-[440px] w-auto object-contain rounded-xl shadow-2xl"
         />
       </div>
 
@@ -145,7 +144,7 @@ export default function GraphicPreview({
           onClick={onReset}
           className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
         >
-          <RefreshCw className="w-3.5 h-3.5" /> Create Another Graphic
+          <RefreshCw className="w-3.5 h-3.5" /> Create Another Frame
         </button>
       </div>
     </motion.div>
