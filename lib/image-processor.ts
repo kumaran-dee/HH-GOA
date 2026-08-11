@@ -16,10 +16,10 @@ export interface GeneratePfpOptions {
  * 1. Composites user photo into center window (left: 246, top: 202, diameter: 512px)
  * 2. Erases old pill outline and LIVE AT 8:00 PM text completely from the beach sand layer
  * 3. Completely covers HH seal on the left
- * 4. Renders user's custom input name (default "builder") via SVG vector path (zero tofu boxes)
+ * 4. Renders user's custom input name (default "BUILDER") via SVG vector path (zero tofu boxes)
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
-  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder" } = options;
+  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "BUILDER" } = options;
 
   const targetSize = 1024;
 
@@ -80,8 +80,8 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Clean username text
-  const rawName = (username.trim() || "builder").toUpperCase();
+  // Clean username text (Capitalized)
+  const rawName = (username.trim() || "BUILDER").toUpperCase();
 
   // Pure SVG Vector Typography for User Name (100% font-independent, ZERO tofu boxes)
   const nameVectorPathSvg = renderVectorText({
@@ -171,6 +171,6 @@ export async function generateBuilderCard(options: {
     scale: options.scale,
     offsetX: options.offsetX,
     offsetY: options.offsetY,
-    username: options.name || "builder",
+    username: options.name || "BUILDER",
   });
 }

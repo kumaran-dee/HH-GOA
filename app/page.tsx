@@ -12,8 +12,8 @@ export default function HomePage() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // Username / Handle Input (Default set to "builder" as requested)
-  const [username, setUsername] = useState("builder");
+  // Username / Handle Input (Capitalized set to "BUILDER" as requested)
+  const [username, setUsername] = useState("BUILDER");
 
   // Crop & Positioning State
   const [scale, setScale] = useState(1.0);
@@ -61,7 +61,7 @@ export default function HomePage() {
         body: JSON.stringify({
           format: "pfp",
           imageBase64: selectedImageSrc,
-          username: username || "builder",
+          username: username || "BUILDER",
           scale,
           offsetX,
           offsetY,
@@ -124,7 +124,7 @@ export default function HomePage() {
                   {/* Handle Input Card */}
                   <div className="glass-card rounded-3xl p-5 space-y-4 border border-[#FFDE00]/40 bg-[#042917]/90">
                     <div className="flex items-center gap-2 border-b border-emerald-800/80 pb-3">
-                      <Sparkles className="w-4 h-4 text-[#FFDE00]" />
+                      <Sparkles className="w-[#FFDE00] w-4 h-4" />
                       <h4 className="text-sm font-extrabold text-[#FFDE00]">Badge Text / Handle</h4>
                     </div>
 
@@ -134,10 +134,10 @@ export default function HomePage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. builder or Satoshi"
+                        placeholder="e.g. BUILDER or SATOSHI"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500 text-white bg-slate-900/60 border border-emerald-700/50"
+                        className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-bold uppercase placeholder:text-slate-500 text-white bg-slate-900/60 border border-emerald-700/50"
                       />
                     </div>
                   </div>
