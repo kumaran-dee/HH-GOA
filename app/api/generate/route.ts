@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatePfpFrame } from "@/lib/image-processor";
+import { generatePfpFrame, generateBuilderCard } from "@/lib/image-processor";
 import { saveGraphic } from "@/lib/storage";
 
 export async function POST(req: NextRequest) {
   try {
     const contentType = req.headers.get("content-type") || "";
 
+    let format: "pfp" | "builder-card" = "pfp";
     let imageBuffer: Buffer | null = null;
-    let frameStyle: "sunset-cyber" | "neon-palm" | "anjuna-wave" | "vip-gold" = "sunset-cyber";
+    let name = "";
+    let role = "";
+    let title = "";
+    let frameStyle: "emerald-goa" | "sunshine-yellow" | "sunset-pink" | "vip-beach" = "emerald-goa";
     let scale = 1;
     let offsetX = 0;
     let offsetY = 0;
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
-      frameStyle = (formData.get("frameStyle") as any) || "sunset-cyber";
+      format = (formData.get("format") as "pfp" | "builder-card") || "pfp";
+      name = (formData.get("name") as string) || "";
+      role = (formData.get("role") as string) || "";
+      title = (formData.get("title") as string) || "";
+      frameStyle = (formData.get("frameStyle") as any) || "emerald-goa";
       scale = parseFloat((formData.get("scale") as string) || "1");
       offsetX = parseFloat((formData.get("offsetX") as string) || "0");
       offsetY = parseFloat((formData.get("offsetY") as string) || "0");
@@ -26,7 +34,11 @@ export async function POST(req: NextRequest) {
       }
     } else {
       const body = await req.json();
-      frameStyle = body.frameStyle || "sunset-cyber";
+      format = body.format || "pfp";
+      name = body.name || "";
+      role = body.role || "";
+      title = body.title || "";
+      frameStyle = body.frameStyle || "emerald-goa";
       scale = body.scale || 1;
       offsetX = body.offsetX || 0;
       offsetY = body.offsetY || 0;
@@ -41,20 +53,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    const generatedPngBuffer = await generatePfpFrame({
-      imageBuffer,
-      scale,
-      offsetX,
-      offsetY,
-      frameStyle,
-    });
+    let generatedPngBuffer: Buffer;
+
+    if (format === "builder-card") {
+      generatedPngBuffer = await generateBuilderCard({
+        imageBuffer,
+        name,
+        role,
+        title,
+        scale,
+        offsetX,
+        offsetY,
+      });
+    } else {
+      generatedPngBuffer = await generatePfpFrame({
+        imageBuffer,
+        scale,
+        offsetX,
+        offsetY,
+        frameStyle,
+      });
+    }
 
     const dataUri = `data:image/png;base64,${generatedPngBuffer.toString("base64")}`;
 
     // Store graphic for dynamic Open Graph X link sharing
     const id = saveGraphic({
-      format: "pfp",
+      format,
       imageDataUri: dataUri,
+      name,
+      role,
+      title,
     });
 
     const host = req.headers.get("host") || "localhost:3000";
@@ -66,12 +95,12 @@ export async function POST(req: NextRequest) {
       id,
       shareUrl,
       imageDataUri: dataUri,
-      fileName: "frameingoa-pfp.png",
+      fileName: format === "builder-card" ? "frameingoa-builder-card.png" : "frameingoa-pfp.png",
     });
   } catch (error: any) {
-    console.error("Error generating PFP graphic:", error);
+    console.error("Error generating graphic:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to generate PFP graphic" },
+      { error: error.message || "Failed to generate graphic" },
       { status: 500 }
     );
   }

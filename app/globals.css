@@ -2,18 +2,16 @@
 
 @layer base {
   :root {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --primary: 14 100% 50%;
-    --primary-foreground: 210 40% 98%;
-    --accent: 187 100% 50%;
+    --background: 153 82% 9%;
+    --foreground: 0 0% 98%;
+    --primary: 52 100% 50%;
+    --primary-foreground: 153 82% 9%;
+    --accent: 330 100% 50%;
   }
 
   body {
-    background-color: #07090e;
-    color: #f8fafc;
+    background-color: #042917;
+    color: #ffffff;
     font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     overflow-x: hidden;
     min-height: 100vh;
@@ -22,72 +20,53 @@
 
 /* Glassmorphism Cards */
 .glass-card {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(5, 71, 38, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 59, 0, 0.05);
+  border: 1px solid rgba(255, 222, 0, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 222, 0, 0.1);
 }
 
 .glass-card-interactive {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(4, 41, 23, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 222, 0, 0.2);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-interactive:hover {
-  border-color: rgba(0, 242, 254, 0.5);
+  border-color: #FFDE00;
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0, 242, 254, 0.15);
+  box-shadow: 0 10px 30px rgba(255, 222, 0, 0.2);
 }
 
 .glass-input {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(2, 28, 14, 0.85);
+  border: 1px solid rgba(255, 222, 0, 0.3);
   color: #ffffff;
   backdrop-filter: blur(8px);
 }
 
 .glass-input:focus {
-  border-color: #00f2fe;
+  border-color: #FFDE00;
   outline: none;
-  box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+  box-shadow: 0 0 15px rgba(255, 222, 0, 0.4);
 }
 
 /* Goa Sunset & Cyber Gradients */
 .gradient-text-goa {
-  background: linear-gradient(135deg, #FF3B00 0%, #FF8C00 50%, #00F2FE 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gradient-text-cyber {
-  background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #9B51E0 100%);
+  background: linear-gradient(135deg, #FFDE00 0%, #FFE600 50%, #FF007F 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .bg-gradient-goa {
-  background: linear-gradient(135deg, #FF3B00 0%, #FF8C00 50%, #00F2FE 100%);
+  background: linear-gradient(135deg, #FFDE00 0%, #FFE600 50%, #FF007F 100%);
 }
 
 .bg-gradient-goa-hover {
-  background: linear-gradient(135deg, #FF4D1A 0%, #FF9E1B 50%, #1AE9FF 100%);
-}
-
-.border-gradient-goa {
-  border-image: linear-gradient(135deg, #FF3B00, #FF8C00, #00F2FE) 1;
-}
-
-/* Glowing Neon Elements */
-.glow-orange {
-  box-shadow: 0 0 25px rgba(255, 59, 0, 0.4);
-}
-
-.glow-cyan {
-  box-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+  background: linear-gradient(135deg, #FFE600 0%, #FFF033 50%, #FF1493 100%);
 }
 
 /* Ambient Animated Orbs */
@@ -114,12 +93,12 @@
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #07090e;
+  background: #042917;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #054726;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #0A5C36;
 }

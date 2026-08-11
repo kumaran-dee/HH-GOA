@@ -3,13 +3,17 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroHeader from "@/components/HeroHeader";
+import ModeSelector, { GenerationMode } from "@/components/ModeSelector";
 import ImageUploader from "@/components/ImageUploader";
 import FaceAdjuster from "@/components/FaceAdjuster";
+import BuilderCardForm from "@/components/BuilderCardForm";
 import FrameCustomizer, { FrameStyleOption } from "@/components/FrameCustomizer";
 import GraphicPreview from "@/components/GraphicPreview";
+import { getRandomBuilderTitle } from "@/lib/builder-titles";
 import { ArrowRight, Loader2, Wand2 } from "lucide-react";
 
 export default function HomePage() {
+  const [mode, setMode] = useState<GenerationMode>("pfp");
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -18,8 +22,13 @@ export default function HomePage() {
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
 
-  // Frame Options
-  const [frameStyle, setFrameStyle] = useState<FrameStyleOption>("sunset-cyber");
+  // Format A Options
+  const [frameStyle, setFrameStyle] = useState<FrameStyleOption>("emerald-goa");
+
+  // Format B Options
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("Full Stack");
+  const [title, setTitle] = useState(() => getRandomBuilderTitle());
 
   // Generation Output State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,7 +69,11 @@ export default function HomePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          format: mode,
           imageBase64: selectedImageSrc,
+          name: name || "BUILDER",
+          role: role || "FULL STACK",
+          title: title || getRandomBuilderTitle(),
           frameStyle,
           scale,
           offsetX,
@@ -71,7 +84,7 @@ export default function HomePage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to generate PFP graphic.");
+        throw new Error(data.error || "Failed to generate graphic.");
       }
 
       setGeneratedOutput({
@@ -92,6 +105,12 @@ export default function HomePage() {
       {/* Hero Header */}
       <HeroHeader />
 
+      {/* Mode Switcher */}
+      <ModeSelector mode={mode} onSelectMode={(newMode) => {
+        setMode(newMode);
+        setGeneratedOutput(null);
+      }} />
+
       {/* Main Flow Section */}
       <div className="max-w-3xl mx-auto w-full space-y-6">
         {generatedOutput ? (
@@ -99,7 +118,7 @@ export default function HomePage() {
             imageDataUri={generatedOutput.imageDataUri}
             shareUrl={generatedOutput.shareUrl}
             fileName={generatedOutput.fileName}
-            format="pfp"
+            format={mode}
             onReset={() => setGeneratedOutput(null)}
           />
         ) : (
@@ -131,14 +150,25 @@ export default function HomePage() {
                     onChangeOffsetX={setOffsetX}
                     onChangeOffsetY={setOffsetY}
                     frameStyle={frameStyle}
-                    isBuilderCard={false}
+                    isBuilderCard={mode === "builder-card"}
                   />
 
-                  {/* Frame Style Customizer */}
-                  <FrameCustomizer
-                    selectedStyle={frameStyle}
-                    onSelectStyle={setFrameStyle}
-                  />
+                  {/* Mode-Specific Customization */}
+                  {mode === "pfp" ? (
+                    <FrameCustomizer
+                      selectedStyle={frameStyle}
+                      onSelectStyle={setFrameStyle}
+                    />
+                  ) : (
+                    <BuilderCardForm
+                      name={name}
+                      role={role}
+                      title={title}
+                      onChangeName={setName}
+                      onChangeRole={setRole}
+                      onChangeTitle={setTitle}
+                    />
+                  )}
 
                   {/* Error Notification */}
                   {errorMessage && (
@@ -153,17 +183,17 @@ export default function HomePage() {
                       type="button"
                       onClick={handleGenerate}
                       disabled={isGenerating}
-                      className="w-full py-4 px-8 rounded-2xl bg-gradient-goa font-extrabold text-white text-lg shadow-xl shadow-orange-500/20 hover:bg-gradient-goa-hover hover:scale-[1.01] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                      className="w-full py-4 px-8 rounded-2xl bg-[#FFDE00] font-black text-slate-950 text-lg shadow-xl shadow-yellow-500/20 hover:bg-[#FFE600] hover:scale-[1.01] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 border-2 border-white"
                     >
                       {isGenerating ? (
                         <>
-                          <Loader2 className="w-6 h-6 animate-spin text-white" />
-                          <span>Generating Hacker House Goa Frame...</span>
+                          <Loader2 className="w-6 h-6 animate-spin text-slate-950" />
+                          <span>Generating Hacker House Goa Pass...</span>
                         </>
                       ) : (
                         <>
                           <Wand2 className="w-6 h-6" />
-                          <span>Generate HH Goa 2026 Frame</span>
+                          <span>Generate {mode === "builder-card" ? "Builder ID Pass" : "PFP Frame"}</span>
                           <ArrowRight className="w-5 h-5 ml-1" />
                         </>
                       )}
