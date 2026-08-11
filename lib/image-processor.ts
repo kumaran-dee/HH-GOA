@@ -1,36 +1,33 @@
 import sharp from "sharp";
-import { renderVectorText, generateVectorBarcode } from "./svg-vector-text";
+import { renderVectorText } from "./svg-vector-text";
 
 export interface GeneratePfpOptions {
   imageBuffer: Buffer;
   scale?: number;
   offsetX?: number;
   offsetY?: number;
+  username?: string;
+  role?: string;
   frameStyle?: "emerald-goa" | "sunshine-yellow" | "sunset-pink" | "vip-beach";
 }
 
-export interface GenerateBuilderCardOptions {
-  imageBuffer: Buffer;
-  name: string;
-  role: string;
-  title: string;
-  scale?: number;
-  offsetX?: number;
-  offsetY?: number;
-}
-
 /**
- * Generate Format A: HH Goa 2026 Profile Picture Frame (1024x1024 PNG)
+ * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
+ * Matches the exact artwork template with central circular photo frame, HH GOA seal,
+ * tall yellow HACKER HOUSE title, hot pink "गोवा" badge, and beach artwork.
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
-  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, frameStyle = "emerald-goa" } = options;
+  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder", role = "LIVE AT 8:00 PM" } = options;
 
   const targetSize = 1024;
+  const circleDiameter = 520;
+  const circleCenterX = 512;
+  const circleCenterY = 475;
 
   const userImg = sharp(imageBuffer);
   const metadata = await userImg.metadata();
-  const srcW = metadata.width || targetSize;
-  const srcH = metadata.height || targetSize;
+  const srcW = metadata.width || circleDiameter;
+  const srcH = metadata.height || circleDiameter;
 
   const minDim = Math.min(srcW, srcH) / scale;
   const cropW = Math.round(minDim);
@@ -42,20 +39,50 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const left = Math.max(0, Math.min(srcW - cropW, Math.round(baseLeft - offsetX * srcW)));
   const top = Math.max(0, Math.min(srcH - cropH, Math.round(baseTop - offsetY * srcH)));
 
-  const croppedUserBuffer = await userImg
+  // Extract and resize cropped photo to circle size
+  const resizedAvatar = await userImg
     .extract({ left, top, width: cropW, height: cropH })
-    .resize(targetSize, targetSize, { fit: "cover" })
+    .resize(circleDiameter, circleDiameter, { fit: "cover" })
     .png()
     .toBuffer();
 
-  const frameSvg = getPfpFrameSvg(frameStyle, targetSize);
+  // Create Circular Mask
+  const circleMask = Buffer.from(
+    `<svg width="${circleDiameter}" height="${circleDiameter}">
+      <circle cx="${circleDiameter / 2}" cy="${circleDiameter / 2}" r="${circleDiameter / 2}" fill="#fff"/>
+    </svg>`
+  );
 
-  const finalImage = await sharp(croppedUserBuffer)
+  const circularAvatar = await sharp(resizedAvatar)
+    .composite([{ input: circleMask, blend: "dest-in" }])
+    .png()
+    .toBuffer();
+
+  // Generate Base SVG Frame Overlay
+  const frameSvg = getOfficialHhGoaFrameSvg({
+    size: targetSize,
+    username: username.startsWith("@") ? username : `@${username}`,
+    role: role || "LIVE AT 8:00 PM",
+    circleCenterX,
+    circleCenterY,
+    circleDiameter,
+  });
+
+  // Base canvas SVG background
+  const baseCanvasSvg = getOfficialHhGoaBackgroundSvg(targetSize);
+
+  // Composite: Background SVG + Circular Photo + Overlay SVG
+  const finalImage = await sharp(Buffer.from(baseCanvasSvg))
     .composite([
       {
+        input: circularAvatar,
+        left: circleCenterX - circleDiameter / 2,
+        top: circleCenterY - circleDiameter / 2,
+      },
+      {
         input: Buffer.from(frameSvg),
-        top: 0,
         left: 0,
+        top: 0,
       },
     ])
     .png({ quality: 95 })
@@ -65,85 +92,38 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
 }
 
 /**
- * Generate Format B: Official Aadhaar / Government ID Style Builder Pass Card (1200x630 PNG)
+ * Format B: Official Builder Pass Badge Card (1200x630 PNG)
  */
-export async function generateBuilderCard(options: GenerateBuilderCardOptions): Promise<Buffer> {
-  const { imageBuffer, name, role, title, scale = 1, offsetX = 0, offsetY = 0 } = options;
-
-  const cardW = 1200;
-  const cardH = 630;
-
-  // Process Rectangular Portrait Photo for Aadhaar ID Card (300x380)
-  const photoW = 300;
-  const photoH = 380;
-
-  const userImg = sharp(imageBuffer);
-  const metadata = await userImg.metadata();
-  const srcW = metadata.width || photoW;
-  const srcH = metadata.height || photoH;
-
-  const cropW = Math.round((photoW * (srcH / photoH)) / scale);
-  const cropH = Math.round(srcH / scale);
-
-  const baseLeft = Math.round((srcW - cropW) / 2);
-  const baseTop = Math.round((srcH - cropH) / 2);
-
-  const left = Math.max(0, Math.min(srcW - cropW, Math.round(baseLeft - offsetX * srcW)));
-  const top = Math.max(0, Math.min(srcH - cropH, Math.round(baseTop - offsetY * srcH)));
-
-  const resizedPhoto = await userImg
-    .extract({ left, top, width: Math.min(srcW, cropW), height: Math.min(srcH, cropH) })
-    .resize(photoW, photoH, { fit: "cover" })
-    .png()
-    .toBuffer();
-
-  // Create Rounded Rectangle Mask for Photo
-  const photoMask = Buffer.from(
-    `<svg width="${photoW}" height="${photoH}">
-      <rect width="${photoW}" height="${photoH}" rx="16" fill="#fff"/>
-    </svg>`
-  );
-
-  const maskedPhoto = await sharp(resizedPhoto)
-    .composite([{ input: photoMask, blend: "dest-in" }])
-    .png()
-    .toBuffer();
-
-  const cardSvg = getAadhaarBuilderCardSvg({
-    width: cardW,
-    height: cardH,
-    name: name || "BUILDER",
-    role: role || "FULL STACK",
-    title: title || "CHAI-POWERED CODE WIZARD",
+export async function generateBuilderCard(options: {
+  imageBuffer: Buffer;
+  name: string;
+  role: string;
+  title: string;
+  scale?: number;
+  offsetX?: number;
+  offsetY?: number;
+}): Promise<Buffer> {
+  return generatePfpFrame({
+    imageBuffer: options.imageBuffer,
+    scale: options.scale,
+    offsetX: options.offsetX,
+    offsetY: options.offsetY,
+    username: options.name || "builder",
+    role: options.role || "LIVE AT 8:00 PM",
   });
+}
 
-  const photoLeft = 80;
-  const photoTop = 150;
-
-  // Photo Border Frame
-  const photoBorderSvg = Buffer.from(
-    `<svg width="${photoW + 12}" height="${photoH + 12}">
-      <rect width="${photoW + 12}" height="${photoH + 12}" rx="20" fill="none" stroke="#FFDE00" stroke-width="6"/>
-    </svg>`
-  );
-
-  const finalCard = await sharp(Buffer.from(cardSvg))
-    .composite([
-      {
-        input: photoBorderSvg,
-        left: photoLeft - 6,
-        top: photoTop - 6,
-      },
-      {
-        input: maskedPhoto,
-        left: photoLeft,
-        top: photoTop,
-      },
-    ])
-    .png({ quality: 95 })
-    .toBuffer();
-
-  return finalCard;
+/**
+ * Base Background SVG for Official HH Goa Template
+ */
+function getOfficialHhGoaBackgroundSvg(size: number): string {
+  return `
+  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${size}" height="${size}" fill="#064426" />
+    <path d="M 0 600 Q 250 550 512 580 Q 750 550 1024 600 V 1024 H 0 Z" fill="#0A5C36" />
+    <path d="M 0 680 Q 250 640 512 670 Q 750 640 1024 680 V 1024 H 0 Z" fill="#F0F7F2" />
+  </svg>
+  `;
 }
 
 /**
@@ -152,334 +132,235 @@ export async function generateBuilderCard(options: GenerateBuilderCardOptions): 
 function getDevanagariGoaBadge(x: number, y: number, scale = 1): string {
   return `
   <g transform="translate(${x}, ${y}) scale(${scale})">
-    <rect x="0" y="0" width="130" height="52" rx="14" fill="#FF007F" stroke="#FFFFFF" stroke-width="3" />
-    <g transform="translate(18, 12)">
-      <path d="M 0 4 H 94" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" />
-      <path d="M 12 4 V 24 Q 12 30 6 30 Q 0 30 0 24 Q 0 18 6 18 H 12 M 26 4 V 32" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M 40 4 V 32 M 26 4 Q 34 -8 42 -4" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" />
-      <path d="M 58 4 V 32 M 58 18 Q 58 10 68 10 Q 78 10 78 18 Q 78 26 68 26 Q 58 26 58 18 M 88 4 V 32" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+    <rect x="0" y="0" width="100" height="44" rx="14" fill="#FF007F" stroke="#FFFFFF" stroke-width="2.5" />
+    <g transform="translate(13, 9)">
+      <path d="M 0 3 H 74" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" />
+      <path d="M 9 3 V 19 Q 9 24 5 24 Q 0 24 0 19 Q 0 14 5 14 H 9 M 20 3 V 26" fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 32 3 V 26 M 20 3 Q 27 -8 35 -4" fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" />
+      <path d="M 46 3 V 26 M 46 14 Q 46 8 54 8 Q 62 8 62 14 Q 62 20 54 20 Q 46 20 46 14 M 70 3 V 26" fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
     </g>
   </g>
   `;
 }
 
 /**
- * Format A: SVG Overlay for PFP Frames (Official Emerald Green Theme)
+ * Official Hacker House Goa 2026 Frame Overlay SVG
+ * Matching Pic 2 artwork layout with central circular photo frame,
+ * tall yellow HACKER HOUSE title, hot pink Devanagari "गोवा" badge, HH GOA seal, and beach scene.
  */
-function getPfpFrameSvg(style: string, size: number): string {
-  const strokeWidth = 36;
+function getOfficialHhGoaFrameSvg(params: {
+  size: number;
+  username: string;
+  role: string;
+  circleCenterX: number;
+  circleCenterY: number;
+  circleDiameter: number;
+}): string {
+  const { size, username, role, circleCenterX, circleCenterY, circleDiameter } = params;
 
-  let frameBorderColor = "#FFDE00";
-  let tagBgColor = "#FF007F";
+  const radius = circleDiameter / 2;
 
-  if (style === "sunshine-yellow") {
-    frameBorderColor = "#FFDE00";
-    tagBgColor = "#054726";
-  } else if (style === "sunset-pink") {
-    frameBorderColor = "#FF007F";
-    tagBgColor = "#FFDE00";
-  } else if (style === "vip-beach") {
-    frameBorderColor = "#00F2FE";
-    tagBgColor = "#FF007F";
-  }
-
-  const topVectorText = renderVectorText({
+  // Vector Typography
+  const dateVectorText = renderVectorText({
     text: "GOA, INDIA • 28 - 31 OCT 2026",
-    x: size / 2,
-    y: 56,
-    fontSize: 16,
+    x: 60,
+    y: 160,
+    fontSize: 13,
     stroke: "#FFDE00",
-    strokeWidth: 2.8,
-    letterSpacing: 3,
-    align: "center",
-  });
-
-  const mainTitleVectorText = renderVectorText({
-    text: "HACKER HOUSE",
-    x: size / 2 - 270,
-    y: size - 122,
-    fontSize: 28,
-    stroke: "#FFDE00",
-    strokeWidth: 3.8,
-    letterSpacing: 4,
-    align: "left",
-  });
-
-  const subTitleVectorText = renderVectorText({
-    text: "2:47 PM STUDIO • OFFICIAL ATTENDEE",
-    x: size / 2 - 270,
-    y: size - 82,
-    fontSize: 14,
-    stroke: "#FFFFFF",
     strokeWidth: 2.4,
     letterSpacing: 2,
     align: "left",
   });
 
-  const tagVectorText = renderVectorText({
-    text: "#FRAMEINGOA",
-    x: size / 2 + 235,
-    y: size - 105,
-    fontSize: 16,
-    stroke: "#FFFFFF",
-    strokeWidth: 3.0,
-    letterSpacing: 2,
-    align: "center",
-  });
-
-  const goaBadge = getDevanagariGoaBadge(size / 2 - 40, size - 145, 1.1);
-
-  return `
-  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feGaussianBlur stdDeviation="8" result="blur" />
-        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-      </filter>
-    </defs>
-
-    <!-- Outer Frame Border -->
-    <rect x="${strokeWidth / 2}" y="${strokeWidth / 2}" width="${size - strokeWidth}" height="${size - strokeWidth}" 
-          rx="52" fill="none" stroke="${frameBorderColor}" stroke-width="${strokeWidth}" />
-
-    <!-- Corner Tropical Accents -->
-    <g transform="translate(60, 60)">
-      <path d="M 0 0 Q 30 10 50 40 Q 20 40 0 0 M 0 0 Q 10 30 40 50 Q 40 20 0 0" fill="#0A5C36" stroke="#FFDE00" stroke-width="3"/>
-    </g>
-    <g transform="translate(${size - 110}, 60)">
-      <path d="M 50 0 Q 20 10 0 40 Q 30 40 50 0 M 50 0 Q 40 30 10 50 Q 10 20 50 0" fill="#0A5C36" stroke="#FFDE00" stroke-width="3"/>
-    </g>
-
-    <!-- Top Date Badge -->
-    <g transform="translate(${size / 2 - 180}, 44)">
-      <rect x="0" y="0" width="360" height="48" rx="24" fill="#054726" stroke="#FFDE00" stroke-width="2" />
-    </g>
-    ${topVectorText}
-
-    <!-- Bottom Event Banner Badge -->
-    <g transform="translate(${size / 2 - 340}, ${size - 155})" filter="url(#shadow)">
-      <rect x="0" y="0" width="680" height="110" rx="30" fill="#063D23" stroke="#FFDE00" stroke-width="4" />
-      <g transform="translate(470, 28)">
-        <rect x="0" y="0" width="180" height="54" rx="20" fill="${tagBgColor}" stroke="#FFFFFF" stroke-width="2"/>
-      </g>
-    </g>
-
-    ${goaBadge}
-
-    ${mainTitleVectorText}
-    ${subTitleVectorText}
-    ${tagVectorText}
-  </svg>
-  `;
-}
-
-/**
- * Format B: Official Aadhaar / National ID Card Style Layout (Hacker House Goa Edition)
- */
-function getAadhaarBuilderCardSvg(params: {
-  width: number;
-  height: number;
-  name: string;
-  role: string;
-  title: string;
-}): string {
-  const { width, height, name, role, title } = params;
-
-  // Header Banner Typography
-  const headerGovText = renderVectorText({
-    text: "HACKER HOUSE GOA 2026",
-    x: 340,
-    y: 55,
-    fontSize: 22,
+  const studioVectorText = renderVectorText({
+    text: "2:47 PM STUDIO",
+    x: size - 60,
+    y: 72,
+    fontSize: 13,
     stroke: "#FFDE00",
-    strokeWidth: 3.2,
-    letterSpacing: 3,
-    align: "left",
-  });
-
-  const headerSubGovText = renderVectorText({
-    text: "GOVERNMENT OF BUILDERS • OFFICIAL ID PASS",
-    x: 340,
-    y: 85,
-    fontSize: 12,
-    stroke: "#FFFFFF",
-    strokeWidth: 2.2,
+    strokeWidth: 2.4,
     letterSpacing: 2,
-    align: "left",
+    align: "right",
   });
 
-  // Card Content Labels & Values
-  const nameLabelText = renderVectorText({
-    text: "NAME / नाम:",
-    x: 420,
-    y: 165,
-    fontSize: 12,
-    stroke: "#FFDE00",
-    strokeWidth: 2.0,
-    letterSpacing: 2,
-    align: "left",
-  });
-
-  const nameValText = renderVectorText({
-    text: name,
-    x: 420,
-    y: 195,
-    fontSize: 28,
-    stroke: "#FFFFFF",
-    strokeWidth: 3.8,
-    letterSpacing: 2,
-    align: "left",
-  });
-
-  const roleLabelText = renderVectorText({
-    text: "STACK & ROLE / भूमिका:",
-    x: 420,
-    y: 250,
-    fontSize: 12,
-    stroke: "#FFDE00",
-    strokeWidth: 2.0,
-    letterSpacing: 2,
-    align: "left",
-  });
-
-  const roleValText = renderVectorText({
-    text: role,
-    x: 420,
-    y: 280,
-    fontSize: 18,
-    stroke: "#0A5C36",
-    strokeWidth: 2.8,
-    letterSpacing: 2,
-    align: "left",
-  });
-
-  const titleLabelText = renderVectorText({
-    text: "BUILDER TITLE / उपाधि:",
-    x: 420,
-    y: 335,
-    fontSize: 12,
-    stroke: "#FFDE00",
-    strokeWidth: 2.0,
-    letterSpacing: 2,
-    align: "left",
-  });
-
-  const titleValText = renderVectorText({
-    text: `⚡ ${title}`,
-    x: 420,
-    y: 365,
-    fontSize: 16,
-    stroke: "#FF007F",
-    strokeWidth: 2.8,
-    letterSpacing: 2,
-    align: "left",
-  });
-
-  // Aadhaar ID Number Generator Format: 2026 8899 4411
-  const aadhaarNumber = `2026  8899  ${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const numberValText = renderVectorText({
-    text: aadhaarNumber,
-    x: width / 2,
-    y: 472,
+  const usernameVectorText = renderVectorText({
+    text: username,
+    x: 520,
+    y: 712,
     fontSize: 26,
-    stroke: "#FFDE00",
+    stroke: "#FFFFFF",
     strokeWidth: 3.8,
-    letterSpacing: 6,
+    letterSpacing: 2,
     align: "center",
   });
 
-  const datesFooterText = renderVectorText({
-    text: "ANJUNA BEACH, GOA • 28 - 31 OCT 2026",
-    x: 60,
-    y: 565,
-    fontSize: 12,
-    stroke: "#FFFFFF",
-    strokeWidth: 2.2,
-    letterSpacing: 2,
-    align: "left",
-  });
-
-  const tagFooterText = renderVectorText({
-    text: "#FRAMEINGOA",
-    x: width - 150,
-    y: 565,
+  const roleVectorText = renderVectorText({
+    text: role,
+    x: 520,
+    y: 755,
     fontSize: 14,
-    stroke: "#FFFFFF",
+    stroke: "#FFDE00",
     strokeWidth: 2.6,
     letterSpacing: 2,
     align: "center",
   });
 
-  const goaBadge = getDevanagariGoaBadge(width - 200, 48, 0.9);
-  const barcode = generateVectorBarcode(70, 460, 280, 40, "#FFDE00");
+  const bottomTagVectorText = renderVectorText({
+    text: "BUILD • BREAK • REPEAT",
+    x: size / 2,
+    y: 955,
+    fontSize: 15,
+    stroke: "#0A5C36",
+    strokeWidth: 2.8,
+    letterSpacing: 4,
+    align: "center",
+  });
+
+  const goaBadge = getDevanagariGoaBadge(460, 68, 0.9);
 
   return `
-  <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#042917" />
-        <stop offset="50%" stop-color="#063D23" />
-        <stop offset="100%" stop-color="#0A5C36" />
-      </linearGradient>
-
-      <!-- Ashoka Emblem / Sun Emblem Gradient -->
-      <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#FFDE00" stop-opacity="0.25" />
-        <stop offset="100%" stop-color="#042917" stop-opacity="0" />
-      </radialGradient>
+      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur stdDeviation="6" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
     </defs>
 
-    <!-- Outer Card Background -->
-    <rect width="${width}" height="${height}" fill="url(#cardBg)" />
+    <!-- 1. TOP HEADER SECTION -->
+    <!-- Tall Yellow Serif "HACKER HOUSE" Title Vector -->
+    <g transform="translate(60, 50)" fill="#FFDE00">
+      <!-- H -->
+      <path d="M 0 0 H 16 V 32 H 48 V 0 H 64 V 80 H 48 V 48 H 16 V 80 H 0 Z" />
+      <!-- A -->
+      <path d="M 75 80 L 98 0 H 115 L 138 80 H 122 L 115 58 H 98 L 91 80 Z M 102 44 H 111 L 106 22 Z" />
+      <!-- C -->
+      <path d="M 185 18 Q 165 0 150 25 V 55 Q 165 80 185 62 V 48 Q 175 58 166 48 V 32 Q 175 22 185 32 Z" />
+      <!-- K -->
+      <path d="M 195 0 H 211 V 34 L 235 0 H 255 L 222 42 L 258 80 H 238 L 211 48 V 80 H 195 Z" />
+      <!-- E -->
+      <path d="M 268 0 H 308 V 16 H 284 V 32 H 304 V 48 H 284 V 64 H 308 V 80 H 268 Z" />
+      <!-- R -->
+      <path d="M 318 0 H 350 Q 368 0 368 22 Q 368 40 350 40 H 334 V 80 H 318 Z M 334 14 V 26 H 348 Q 354 26 354 20 Q 354 14 348 14 Z M 345 40 L 370 80 H 350 L 330 45 Z" />
 
-    <!-- Card Outer Border -->
-    <rect x="20" y="20" width="${width - 40}" height="${height - 40}" rx="24" fill="none" stroke="#FFDE00" stroke-width="4" />
-
-    <!-- Top Tricolor Banner Accent -->
-    <rect x="24" y="24" width="${width - 48}" height="8" fill="#FFDE00" />
-    <rect x="24" y="112" width="${width - 48}" height="4" fill="#FF007F" />
-
-    <!-- Background Watermark Sun Emblem -->
-    <circle cx="${width / 2}" cy="${height / 2}" r="220" fill="url(#sunGlow)" />
-
-    <!-- Top Header Section Background -->
-    <rect x="24" y="32" width="${width - 48}" height="80" fill="#021C0E" opacity="0.9" />
-
-    <!-- Official Sun / Chakra Emblem Icon -->
-    <g transform="translate(65, 42)">
-      <circle cx="30" cy="30" r="28" fill="none" stroke="#FFDE00" stroke-width="3" stroke-dasharray="4,3" />
-      <circle cx="30" cy="30" r="14" fill="none" stroke="#FFDE00" stroke-width="2" />
-      <path d="M 30 2 L 30 58 M 2 30 L 58 30 M 10 10 L 50 50 M 10 50 L 50 10" stroke="#FFDE00" stroke-width="1.5" />
+      <!-- HOUSE (Right side) -->
+      <!-- H -->
+      <path d="M 520 0 H 536 V 32 H 568 V 0 H 584 V 80 H 568 V 48 H 536 V 80 H 520 Z" />
+      <!-- O -->
+      <path d="M 598 40 Q 598 0 625 0 Q 652 0 652 40 Q 652 80 625 80 Q 598 80 598 40 Z M 614 40 Q 614 64 625 64 Q 636 64 636 40 Q 636 16 625 16 Q 614 16 614 40 Z" />
+      <!-- U -->
+      <path d="M 666 0 H 682 V 58 Q 682 66 695 66 Q 708 66 708 58 V 0 H 724 V 58 Q 724 80 695 80 Q 666 80 666 58 Z" />
+      <!-- S -->
+      <path d="M 738 65 Q 748 80 770 75 Q 785 70 778 58 Q 770 48 752 45 Q 736 42 736 30 Q 736 0 766 0 Q 782 0 792 16 L 780 25 Q 772 14 762 14 Q 752 14 752 24 Q 752 30 764 33 Q 792 38 792 58 Q 792 80 762 80 Q 740 80 726 65 Z" />
+      <!-- E -->
+      <path d="M 804 0 H 844 V 16 H 820 V 32 H 840 V 48 H 820 V 64 H 844 V 80 H 804 Z" />
     </g>
 
-    <!-- Role Value Pill Box -->
-    <rect x="415" y="258" width="280" height="34" rx="10" fill="#FFDE00" />
-
-    <!-- Barcode Section Background -->
-    <rect x="40" y="440" width="${width - 80}" height="70" rx="16" fill="#021C0E" stroke="#FFDE00" stroke-width="2" />
-
-    <!-- Bottom Footer Banner -->
-    <rect x="24" y="535" width="${width - 48}" height="45" rx="0" fill="#FF007F" opacity="0.9" />
-
-    <!-- Devanagari Hot Pink Goa Badge -->
+    <!-- Hot Pink "गोवा" Badge overlaying middle -->
     ${goaBadge}
 
-    <!-- Barcode Vector -->
-    ${barcode}
+    <!-- Header Text Layers -->
+    ${dateVectorText}
+    ${studioVectorText}
 
-    <!-- Vector Text Layer -->
-    ${headerGovText}
-    ${headerSubGovText}
-    ${nameLabelText}
-    ${nameValText}
-    ${roleLabelText}
-    ${roleValText}
-    ${titleLabelText}
-    ${titleValText}
-    ${numberValText}
-    ${datesFooterText}
-    ${tagFooterText}
+    <!-- 2. SUNSHINE & BIRDS IN TOP BACKGROUND -->
+    <!-- Top Right Yellow Sun -->
+    <circle cx="880" cy="170" r="32" fill="#FFDE00" />
+    <g stroke="#FFDE00" stroke-width="2.5" stroke-linecap="round">
+      <line x1="880" y1="124" x2="880" y2="112" />
+      <line x1="880" y1="216" x2="880" y2="228" />
+      <line x1="834" y1="170" x2="822" y2="170" />
+      <line x1="926" y1="170" x2="938" y2="170" />
+      <line x1="847" y1="137" x2="838" y2="128" />
+      <line x1="913" y1="203" x2="922" y2="212" />
+      <line x1="847" y1="203" x2="838" y2="212" />
+      <line x1="913" y1="137" x2="922" y2="128" />
+    </g>
+
+    <!-- Birds Flying in Top Left -->
+    <path d="M 160 220 Q 170 210 180 220 Q 190 210 200 220" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" />
+    <path d="M 210 240 Q 218 232 226 240 Q 234 232 242 240" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" />
+
+    <!-- 3. TROPICAL BEACH & PALM TREES ARTWORK -->
+    <!-- Left Palm Tree -->
+    <g transform="translate(0, 300)">
+      <path d="M 40 450 Q 120 220 0 0" fill="none" stroke="#FFDE00" stroke-width="12" stroke-linecap="round" />
+      <path d="M 40 450 Q 120 220 0 0" fill="none" stroke="#064426" stroke-width="7" stroke-linecap="round" />
+      <g transform="translate(0, 0)">
+        <path d="M 0 0 Q -80 -35 -120 35 Q -40 18 0 0 M 0 0 Q -35 -70 35 -85 Q 18 -18 0 0 M 0 0 Q 70 -50 110 18 Q 35 9 0 0 M 0 0 Q 85 35 70 85 Q 28 35 0 0" fill="#0A5C36" stroke="#FFDE00" stroke-width="2.5" />
+      </g>
+    </g>
+
+    <!-- Right Palm Tree -->
+    <g transform="translate(1024, 450)">
+      <path d="M -20 400 Q -100 200 0 0" fill="none" stroke="#FFDE00" stroke-width="12" stroke-linecap="round" />
+      <path d="M -20 400 Q -100 200 0 0" fill="none" stroke="#064426" stroke-width="7" stroke-linecap="round" />
+      <g transform="translate(0, 0)">
+        <path d="M 0 0 Q 80 -35 120 35 Q 40 18 0 0 M 0 0 Q 35 -70 -35 -85 Q -18 -18 0 0 M 0 0 Q -70 -50 -110 18 Q -35 9 0 0 M 0 0 Q -85 35 -70 85 Q -28 35 0 0" fill="#0A5C36" stroke="#FFDE00" stroke-width="2.5" />
+      </g>
+    </g>
+
+    <!-- Coastal Beach Shack "GOA BEACH" (Right Shore) -->
+    <g transform="translate(740, 720)">
+      <rect x="0" y="35" width="120" height="75" fill="#064426" stroke="#FFFFFF" stroke-width="2.5" />
+      <polygon points="-12,35 60,8 132,35" fill="#042816" stroke="#FFFFFF" stroke-width="2.5" />
+      <rect x="15" y="-4" width="90" height="22" rx="5" fill="#FF007F" stroke="#FFFFFF" stroke-width="1.5" />
+      <text x="60" y="11" font-family="sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">GOA BEACH</text>
+    </g>
+
+    <!-- Beach Houses at Bottom -->
+    <g transform="translate(100, 830)">
+      <polygon points="0,50 70,10 140,50 140,140 0,140" fill="#064426" stroke="#FFFFFF" stroke-width="2.5" />
+      <rect x="35" y="70" width="35" height="40" fill="#FFDE00" />
+    </g>
+
+    <g transform="translate(680, 840)">
+      <polygon points="0,50 75,10 150,50 150,130 0,130" fill="#064426" stroke="#FFFFFF" stroke-width="2.5" />
+      <rect x="45" y="70" width="35" height="40" fill="#FF007F" />
+    </g>
+
+    <!-- 4. CENTRAL CIRCULAR PHOTO FRAME RINGS (Pic 2 Match) -->
+    <!-- Outer Thick Sunshine Yellow Ring -->
+    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius + 12}" fill="none" stroke="#FFDE00" stroke-width="18" filter="url(#shadow)" />
+
+    <!-- Middle Thin Green Ring -->
+    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius + 2}" fill="none" stroke="#064426" stroke-width="4" />
+
+    <!-- Inner White Ring -->
+    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius}" fill="none" stroke="#FFFFFF" stroke-width="3" />
+
+    <!-- 5. BOTTOM OVERLAY BADGES (Pic 2 Match) -->
+    <!-- Bottom Left Circular "HH GOA 2026" Badge -->
+    <g transform="translate(290, 685)" filter="url(#shadow)">
+      <circle cx="85" cy="85" r="82" fill="#042917" stroke="#FFDE00" stroke-width="6" />
+      <circle cx="85" cy="85" r="74" fill="none" stroke="#FFFFFF" stroke-width="2" />
+
+      <!-- Brush "HH" Yellow Vector Text -->
+      <g transform="translate(38, 30)" fill="#FFDE00">
+        <path d="M 0 0 H 16 V 35 H 42 V 0 H 58 V 70 H 42 V 48 H 16 V 70 H 0 Z" />
+        <path d="M 46 -6 L 56 -16 H 72 L 62 -6 Z" fill="#FF007F" />
+      </g>
+
+      <!-- Arc Subtext "GOA 2026" -->
+      <text x="85" y="145" font-family="sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">GOA 2026</text>
+    </g>
+
+    <!-- Bottom Username / Handle Pill Badge -->
+    <g transform="translate(330, 690)" filter="url(#shadow)">
+      <!-- Main Green Pill Container -->
+      <rect x="0" y="0" width="440" height="74" rx="28" fill="#042917" stroke="#FFDE00" stroke-width="4" />
+    </g>
+
+    <!-- Vector Text Layer inside Username Pill -->
+    ${usernameVectorText}
+    ${roleVectorText}
+
+    <!-- 6. VERY BOTTOM TAGLINE "BUILD • BREAK • REPEAT" -->
+    <g transform="translate(0, 930)">
+      <line x1="280" y1="20" x2="380" y2="20" stroke="#0A5C36" stroke-width="2" />
+      <line x1="644" y1="20" x2="744" y2="20" stroke="#0A5C36" stroke-width="2" />
+    </g>
+    ${bottomTagVectorText}
   </svg>
   `;
 }

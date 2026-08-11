@@ -3,32 +3,27 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroHeader from "@/components/HeroHeader";
-import ModeSelector, { GenerationMode } from "@/components/ModeSelector";
 import ImageUploader from "@/components/ImageUploader";
 import FaceAdjuster from "@/components/FaceAdjuster";
-import BuilderCardForm from "@/components/BuilderCardForm";
 import FrameCustomizer, { FrameStyleOption } from "@/components/FrameCustomizer";
 import GraphicPreview from "@/components/GraphicPreview";
-import { getRandomBuilderTitle } from "@/lib/builder-titles";
-import { ArrowRight, Loader2, Wand2 } from "lucide-react";
+import { ArrowRight, Loader2, Wand2, User, Sparkles } from "lucide-react";
 
 export default function HomePage() {
-  const [mode, setMode] = useState<GenerationMode>("pfp");
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+
+  // Username / Handle Input (as shown in Pic 2)
+  const [username, setUsername] = useState("usernamehere");
+  const [roleText, setRoleText] = useState("LIVE AT 8:00 PM");
 
   // Crop & Positioning State
   const [scale, setScale] = useState(1.0);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
 
-  // Format A Options
+  // Frame Options
   const [frameStyle, setFrameStyle] = useState<FrameStyleOption>("emerald-goa");
-
-  // Format B Options
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("Full Stack");
-  const [title, setTitle] = useState(() => getRandomBuilderTitle());
 
   // Generation Output State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -69,11 +64,10 @@ export default function HomePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          format: mode,
+          format: "pfp",
           imageBase64: selectedImageSrc,
-          name: name || "BUILDER",
-          role: role || "FULL STACK",
-          title: title || getRandomBuilderTitle(),
+          username: username || "usernamehere",
+          role: roleText || "LIVE AT 8:00 PM",
           frameStyle,
           scale,
           offsetX,
@@ -84,7 +78,7 @@ export default function HomePage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to generate graphic.");
+        throw new Error(data.error || "Failed to generate PFP frame graphic.");
       }
 
       setGeneratedOutput({
@@ -105,12 +99,6 @@ export default function HomePage() {
       {/* Hero Header */}
       <HeroHeader />
 
-      {/* Mode Switcher */}
-      <ModeSelector mode={mode} onSelectMode={(newMode) => {
-        setMode(newMode);
-        setGeneratedOutput(null);
-      }} />
-
       {/* Main Flow Section */}
       <div className="max-w-3xl mx-auto w-full space-y-6">
         {generatedOutput ? (
@@ -118,7 +106,7 @@ export default function HomePage() {
             imageDataUri={generatedOutput.imageDataUri}
             shareUrl={generatedOutput.shareUrl}
             fileName={generatedOutput.fileName}
-            format={mode}
+            format="pfp"
             onReset={() => setGeneratedOutput(null)}
           />
         ) : (
@@ -140,6 +128,42 @@ export default function HomePage() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6 overflow-hidden"
                 >
+                  {/* Handle & Badge Subtext Input Card */}
+                  <div className="glass-card rounded-3xl p-5 space-y-4 border border-[#FFDE00]/40 bg-[#042917]/90">
+                    <div className="flex items-center gap-2 border-b border-emerald-800/80 pb-3">
+                      <Sparkles className="w-4 h-4 text-[#FFDE00]" />
+                      <h4 className="text-sm font-extrabold text-[#FFDE00]">Username & Badge Subtext</h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-[#FF007F]" /> Username / Handle
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. usernamehere or Satoshi"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                          Badge Tagline
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. LIVE AT 8:00 PM or BUILDER"
+                          value={roleText}
+                          onChange={(e) => setRoleText(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Interactive Crop & Position */}
                   <FaceAdjuster
                     imageSrc={selectedImageSrc}
@@ -150,25 +174,14 @@ export default function HomePage() {
                     onChangeOffsetX={setOffsetX}
                     onChangeOffsetY={setOffsetY}
                     frameStyle={frameStyle}
-                    isBuilderCard={mode === "builder-card"}
+                    isBuilderCard={false}
                   />
 
-                  {/* Mode-Specific Customization */}
-                  {mode === "pfp" ? (
-                    <FrameCustomizer
-                      selectedStyle={frameStyle}
-                      onSelectStyle={setFrameStyle}
-                    />
-                  ) : (
-                    <BuilderCardForm
-                      name={name}
-                      role={role}
-                      title={title}
-                      onChangeName={setName}
-                      onChangeRole={setRole}
-                      onChangeTitle={setTitle}
-                    />
-                  )}
+                  {/* Frame Customizer */}
+                  <FrameCustomizer
+                    selectedStyle={frameStyle}
+                    onSelectStyle={setFrameStyle}
+                  />
 
                   {/* Error Notification */}
                   {errorMessage && (
@@ -188,12 +201,12 @@ export default function HomePage() {
                       {isGenerating ? (
                         <>
                           <Loader2 className="w-6 h-6 animate-spin text-slate-950" />
-                          <span>Generating Hacker House Goa Pass...</span>
+                          <span>Generating Official Hacker House Frame...</span>
                         </>
                       ) : (
                         <>
                           <Wand2 className="w-6 h-6" />
-                          <span>Generate {mode === "builder-card" ? "Builder ID Pass" : "PFP Frame"}</span>
+                          <span>Generate Official PFP Frame</span>
                           <ArrowRight className="w-5 h-5 ml-1" />
                         </>
                       )}
