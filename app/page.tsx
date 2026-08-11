@@ -12,8 +12,8 @@ export default function HomePage() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // Username / Handle Input (Default set to "part of HHG" as requested)
-  const [username, setUsername] = useState("part of HHG");
+  // Username / Handle Input (Default set to "builder" as requested)
+  const [username, setUsername] = useState("builder");
 
   // Crop & Positioning State
   const [scale, setScale] = useState(1.0);
@@ -61,7 +61,7 @@ export default function HomePage() {
         body: JSON.stringify({
           format: "pfp",
           imageBase64: selectedImageSrc,
-          username: username || "part of HHG",
+          username: username || "builder",
           scale,
           offsetX,
           offsetY,
@@ -134,7 +134,7 @@ export default function HomePage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. part of HHG or Satoshi"
+                        placeholder="e.g. builder or Satoshi"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500 text-white bg-slate-900/60 border border-emerald-700/50"
