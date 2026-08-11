@@ -3,6 +3,7 @@ import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import GoaBeachBackground from "@/components/GoaBeachBackground";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -45,13 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${outfit.variable} antialiased bg-[#064426] text-white min-h-screen flex flex-col justify-between selection:bg-[#FFDE00] selection:text-slate-950`}>
-        {/* Background ambient tropical glowing spheres */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-[#FFDE00] rounded-full blur-[180px] opacity-15 animate-orb-1" />
-          <div className="absolute top-1/2 -right-32 w-[600px] h-[600px] bg-[#FF007F] rounded-full blur-[190px] opacity-15 animate-orb-2" />
-          <div className="absolute -bottom-32 left-1/3 w-[550px] h-[550px] bg-[#0A5C36] rounded-full blur-[180px] opacity-25" />
-        </div>
+      <body className={`${inter.variable} ${outfit.variable} antialiased bg-[#06381F] text-white min-h-screen flex flex-col justify-between selection:bg-[#FFDE00] selection:text-slate-950`}>
+        {/* Official Hacker House Goa Beach Background Illustration */}
+        <GoaBeachBackground />
 
         <Navbar />
         
