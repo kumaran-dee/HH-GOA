@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, WheelEvent, MouseEvent, TouchEvent } from "react";
+import { useEffect, useRef, useState, MouseEvent, TouchEvent } from "react";
 import { Move, RotateCcw, Sparkles } from "lucide-react";
 import { detectFaceCrop } from "@/lib/face-detection";
 
@@ -37,6 +37,12 @@ export default function FaceAdjuster({
 
   const imgRef = useRef<HTMLImageElement | null>(null);
 
+  // Store current scale in a ref for non-passive event listeners
+  const scaleRef = useRef(scale);
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -52,6 +58,27 @@ export default function FaceAdjuster({
       renderCanvas();
     }
   }, [scale, offsetX, offsetY]);
+
+  // Non-passive wheel event listener to prevent webpage scrolling/zooming when scrolling over the circle
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheelNonPassive = (e: globalThis.WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const zoomDelta = e.deltaY > 0 ? -0.08 : 0.08;
+      const newScale = Math.max(1.0, Math.min(2.5, scaleRef.current + zoomDelta));
+      onChangeScale(newScale);
+    };
+
+    container.addEventListener("wheel", handleWheelNonPassive, { passive: false });
+
+    return () => {
+      container.removeEventListener("wheel", handleWheelNonPassive);
+    };
+  }, [onChangeScale]);
 
   const renderCanvas = () => {
     const canvas = canvasRef.current;
@@ -106,14 +133,6 @@ export default function FaceAdjuster({
 
   const handleMouseUp = () => {
     setIsDragging(false);
-  };
-
-  // Mouse Wheel (Zoom) Handler
-  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const zoomDelta = e.deltaY > 0 ? -0.08 : 0.08;
-    const newScale = Math.max(1.0, Math.min(2.5, scale + zoomDelta));
-    onChangeScale(newScale);
   };
 
   // Mobile Touch Drag Handlers
@@ -202,7 +221,7 @@ export default function FaceAdjuster({
         </div>
       )}
 
-      {/* Interactive Circular Preview Container with Mouse & Touch Drag/Zoom */}
+      {/* Interactive Circular Preview Container with Non-Passive Wheel Lock */}
       <div className="flex flex-col items-center justify-center py-2 space-y-3">
         <div
           ref={containerRef}
@@ -210,13 +229,12 @@ export default function FaceAdjuster({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           className={`relative w-72 h-72 sm:w-80 sm:h-80 rounded-full border-4 border-[#FFDE00] overflow-hidden shadow-2xl shadow-yellow-500/20 select-none bg-[#021C0E] ${
             isDragging ? "cursor-grabbing scale-[1.01]" : "cursor-grab"
-          } transition-transform`}
+          } transition-transform touch-none`}
         >
           <canvas ref={canvasRef} className="w-full h-full object-cover pointer-events-none" />
 
