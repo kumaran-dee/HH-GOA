@@ -13,10 +13,7 @@ export interface GeneratePfpOptions {
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * 1. Composites user photo into center window (left: 246, top: 202, diameter: 512px)
- * 2. Erases old pill outline and LIVE AT 8:00 PM text completely from the beach sand layer
- * 3. Completely covers HH seal on the left
- * 4. Renders user's custom input name (default "BUILDER") via SVG vector path (zero tofu boxes)
+ * Seamless top right green fill matching exact template color (#095B34)
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
   const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "BUILDER" } = options;
@@ -36,7 +33,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
         width: targetSize,
         height: targetSize,
         channels: 4,
-        background: { r: 6, g: 68, b: 38, alpha: 1 },
+        background: { r: 9, g: 91, b: 52, alpha: 1 },
       },
     }).png().toBuffer();
   }
@@ -96,7 +93,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   });
 
   // Clean Overlay SVG:
-  // 1. Removes top right "2:47 PM STUDIO" seamlessly (#064426)
+  // 1. Removes top right "2:47 PM STUDIO" with exact header green color match (#095B34)
   // 2. Sand patch erasing old pill shape & LIVE AT 8:00 PM below y: 740 (#F0F7F2 beach sand color)
   // 3. Symmetrical pill container (width: 684px, height: 104px, left: 170px, top: 665px)
   //    - Completely covers HH seal on the left
@@ -110,8 +107,8 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
       </filter>
     </defs>
 
-    <!-- 1. REMOVE "2:47 PM STUDIO" (Cover top right seamlessly with header green fill) -->
-    <rect x="780" y="50" width="200" height="40" fill="#064426" />
+    <!-- 1. REMOVE "2:47 PM STUDIO" (Cover top right seamlessly with EXACT header green color #095B34) -->
+    <rect x="780" y="45" width="210" height="50" fill="#095B34" />
 
     <!-- 2. ERASE OLD PILL SHAPE & LIVE AT 8:00 PM (Beach sand & ocean gradient fill overlay) -->
     <path d="M 230 740 Q 512 730 790 740 L 790 810 Q 512 825 230 810 Z" fill="#F0F7F2" />
