@@ -13,7 +13,10 @@ export interface GeneratePfpOptions {
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * Seamless top right green fill matching exact template color (#095B34)
+ * 1. Perfectly fits user photo inside the circular frame window (left: 250, top: 194, diameter: 524px)
+ * 2. Overlays pristine yellow & white frame rings for zero gap alignment
+ * 3. Erases old pill shape & LIVE AT 8:00 PM with seamless ocean green fill (#085732)
+ * 4. Renders user's custom input name (default "BUILDER") via SVG vector path (zero tofu boxes)
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
   const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "BUILDER" } = options;
@@ -38,10 +41,12 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     }).png().toBuffer();
   }
 
-  // Exact coordinates matching circular photo area in template
-  const circleDiameter = 512;
-  const circleLeft = 246;
-  const circleTop = 202;
+  // Exact coordinates matching circular photo ring in template image
+  const circleDiameter = 524;
+  const circleLeft = 250;
+  const circleTop = 194;
+  const circleCenterX = 512;
+  const circleCenterY = 456;
 
   const userImg = sharp(imageBuffer);
   const metadata = await userImg.metadata();
@@ -83,8 +88,8 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   // Pure SVG Vector Typography for User Name (100% font-independent, ZERO tofu boxes)
   const nameVectorPathSvg = renderVectorText({
     text: rawName,
-    x: 512,
-    y: 720,
+    x: circleCenterX,
+    y: 724,
     fontSize: 24,
     stroke: "#FFFFFF",
     strokeWidth: 2.8,
@@ -92,12 +97,12 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     align: "center",
   });
 
-  // Clean Overlay SVG:
+  // Pristine Overlay SVG:
   // 1. Removes top right "2:47 PM STUDIO" with exact header green color match (#095B34)
-  // 2. Sand patch erasing old pill shape & LIVE AT 8:00 PM below y: 740 (#F0F7F2 beach sand color)
-  // 3. Symmetrical pill container (width: 684px, height: 104px, left: 170px, top: 665px)
-  //    - Completely covers HH seal on the left
-  // 4. Renders user's entered name via SVG vector path
+  // 2. Overlays crisp circular frame rings over user photo (Yellow outer, Green mid, White inner)
+  // 3. Seamless ocean green eraser patch (#085732) hiding old pill & LIVE AT 8:00 PM
+  // 4. Symmetrical pill container (width: 684px, height: 104px, left: 170px, top: 668px)
+  // 5. Renders user's entered name via SVG vector path
   const overlaySvg = `
   <svg width="${targetSize}" height="${targetSize}" viewBox="0 0 ${targetSize} ${targetSize}" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -105,21 +110,30 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
         <feGaussianBlur stdDeviation="6" result="blur" />
         <feComposite in="SourceGraphic" in2="blur" operator="over" />
       </filter>
+
+      <filter id="ringShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur stdDeviation="5" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
     </defs>
 
     <!-- 1. REMOVE "2:47 PM STUDIO" (Cover top right seamlessly with EXACT header green color #095B34) -->
     <rect x="780" y="45" width="210" height="50" fill="#095B34" />
 
-    <!-- 2. ERASE OLD PILL SHAPE & LIVE AT 8:00 PM (Beach sand & ocean gradient fill overlay) -->
-    <path d="M 230 740 Q 512 730 790 740 L 790 810 Q 512 825 230 810 Z" fill="#F0F7F2" />
-    <path d="M 230 740 Q 512 730 790 740 L 790 765 Q 512 755 230 765 Z" fill="#085732" opacity="0.9" />
+    <!-- 2. PRISTINE CIRCULAR FRAME RINGS OVER USER PHOTO (Zero gap alignment) -->
+    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleDiameter / 2 + 10}" fill="none" stroke="#FFDE00" stroke-width="16" filter="url(#ringShadow)" />
+    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleDiameter / 2 + 2}" fill="none" stroke="#064426" stroke-width="4" />
+    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleDiameter / 2}" fill="none" stroke="#FFFFFF" stroke-width="3" />
 
-    <!-- 3. LARGE SYMMETRICAL PILL CONTAINER (Covers HH Seal + Old Pill) -->
-    <g transform="translate(170, 665)" filter="url(#pillShadow)">
+    <!-- 3. ERASE OLD PILL SHAPE & LIVE AT 8:00 PM (Seamless ocean green color match #085732) -->
+    <rect x="230" y="745" width="560" height="55" fill="#085732" rx="14" />
+
+    <!-- 4. LARGE SYMMETRICAL PILL CONTAINER (Covers HH Seal + Old Pill) -->
+    <g transform="translate(170, 668)" filter="url(#pillShadow)">
       <rect x="0" y="0" width="684" height="104" rx="36" fill="#04351D" stroke="#FFDE00" stroke-width="5" />
     </g>
 
-    <!-- 4. PURE SVG VECTOR PATH USER NAME (Renders exact input name e.g. "BUILDER") -->
+    <!-- 5. PURE SVG VECTOR PATH USER NAME (Renders exact input name e.g. "BUILDER") -->
     ${nameVectorPathSvg}
   </svg>
   `;
