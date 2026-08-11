@@ -7,22 +7,26 @@ export interface GeneratePfpOptions {
   offsetX?: number;
   offsetY?: number;
   username?: string;
-  role?: string;
-  frameStyle?: "emerald-goa" | "sunshine-yellow" | "sunset-pink" | "vip-beach";
+  frameStyle?: string;
 }
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * Matches the exact artwork template with central circular photo frame, HH GOA seal,
- * tall yellow HACKER HOUSE title, hot pink "गोवा" badge, and beach artwork.
+ * Exact match to user template:
+ * - Central circular photo frame
+ * - Hot Pink "गोवा" Devanagari badge over yellow HACKER HOUSE title
+ * - NO time text ("2:47 PM STUDIO" and "LIVE AT 8:00 PM" removed)
+ * - HH GOA 2026 circular seal badge
+ * - Green username pill badge showing ONLY @username
+ * - Tropical beach sunset illustration
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
-  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder", role = "LIVE AT 8:00 PM" } = options;
+  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder" } = options;
 
   const targetSize = 1024;
-  const circleDiameter = 520;
+  const circleDiameter = 500;
   const circleCenterX = 512;
-  const circleCenterY = 475;
+  const circleCenterY = 472;
 
   const userImg = sharp(imageBuffer);
   const metadata = await userImg.metadata();
@@ -58,20 +62,19 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Generate Base SVG Frame Overlay
-  const frameSvg = getOfficialHhGoaFrameSvg({
+  // Base canvas background SVG
+  const baseCanvasSvg = getOfficialHhGoaBackgroundSvg(targetSize);
+
+  // Generate Frame Overlay SVG (without any time text)
+  const frameSvg = getOfficialHhGoaFrameOverlaySvg({
     size: targetSize,
-    username: username.startsWith("@") ? username : `@${username}`,
-    role: role || "LIVE AT 8:00 PM",
+    username: username.trim().startsWith("@") ? username.trim() : `@${username.trim()}`,
     circleCenterX,
     circleCenterY,
     circleDiameter,
   });
 
-  // Base canvas SVG background
-  const baseCanvasSvg = getOfficialHhGoaBackgroundSvg(targetSize);
-
-  // Composite: Background SVG + Circular Photo + Overlay SVG
+  // Composite background SVG + Circular photo + Overlay SVG
   const finalImage = await sharp(Buffer.from(baseCanvasSvg))
     .composite([
       {
@@ -92,7 +95,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
 }
 
 /**
- * Format B: Official Builder Pass Badge Card (1200x630 PNG)
+ * Format B: Builder ID Pass (1200x630 PNG)
  */
 export async function generateBuilderCard(options: {
   imageBuffer: Buffer;
@@ -109,19 +112,18 @@ export async function generateBuilderCard(options: {
     offsetX: options.offsetX,
     offsetY: options.offsetY,
     username: options.name || "builder",
-    role: options.role || "LIVE AT 8:00 PM",
   });
 }
 
 /**
- * Base Background SVG for Official HH Goa Template
+ * Base Background SVG
  */
 function getOfficialHhGoaBackgroundSvg(size: number): string {
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
     <rect width="${size}" height="${size}" fill="#064426" />
-    <path d="M 0 600 Q 250 550 512 580 Q 750 550 1024 600 V 1024 H 0 Z" fill="#0A5C36" />
-    <path d="M 0 680 Q 250 640 512 670 Q 750 640 1024 680 V 1024 H 0 Z" fill="#F0F7F2" />
+    <path d="M 0 580 Q 250 530 512 560 Q 750 530 1024 580 V 1024 H 0 Z" fill="#0A5C36" />
+    <path d="M 0 670 Q 250 630 512 660 Q 750 630 1024 670 V 1024 H 0 Z" fill="#F0F7F2" />
   </svg>
   `;
 }
@@ -144,19 +146,18 @@ function getDevanagariGoaBadge(x: number, y: number, scale = 1): string {
 }
 
 /**
- * Official Hacker House Goa 2026 Frame Overlay SVG
- * Matching Pic 2 artwork layout with central circular photo frame,
- * tall yellow HACKER HOUSE title, hot pink Devanagari "गोवा" badge, HH GOA seal, and beach scene.
+ * Overlay SVG Frame for Official Hacker House Goa Template (Exact Match to User Image)
+ * - NO time text ("2:47 PM STUDIO" and "LIVE AT 8:00 PM" removed completely)
+ * - Single centered username text in green pill badge
  */
-function getOfficialHhGoaFrameSvg(params: {
+function getOfficialHhGoaFrameOverlaySvg(params: {
   size: number;
   username: string;
-  role: string;
   circleCenterX: number;
   circleCenterY: number;
   circleDiameter: number;
 }): string {
-  const { size, username, role, circleCenterX, circleCenterY, circleDiameter } = params;
+  const { size, username, circleCenterX, circleCenterY, circleDiameter } = params;
 
   const radius = circleDiameter / 2;
 
@@ -172,35 +173,14 @@ function getOfficialHhGoaFrameSvg(params: {
     align: "left",
   });
 
-  const studioVectorText = renderVectorText({
-    text: "2:47 PM STUDIO",
-    x: size - 60,
-    y: 72,
-    fontSize: 13,
-    stroke: "#FFDE00",
-    strokeWidth: 2.4,
-    letterSpacing: 2,
-    align: "right",
-  });
-
+  // Username vector text (Centered inside pill badge with NO time subtext!)
   const usernameVectorText = renderVectorText({
     text: username,
     x: 520,
-    y: 712,
-    fontSize: 26,
+    y: 728,
+    fontSize: 28,
     stroke: "#FFFFFF",
-    strokeWidth: 3.8,
-    letterSpacing: 2,
-    align: "center",
-  });
-
-  const roleVectorText = renderVectorText({
-    text: role,
-    x: 520,
-    y: 755,
-    fontSize: 14,
-    stroke: "#FFDE00",
-    strokeWidth: 2.6,
+    strokeWidth: 4.0,
     letterSpacing: 2,
     align: "center",
   });
@@ -259,9 +239,8 @@ function getOfficialHhGoaFrameSvg(params: {
     <!-- Hot Pink "गोवा" Badge overlaying middle -->
     ${goaBadge}
 
-    <!-- Header Text Layers -->
+    <!-- Header Subtitle Text (NO 2:47 PM STUDIO time text!) -->
     ${dateVectorText}
-    ${studioVectorText}
 
     <!-- 2. SUNSHINE & BIRDS IN TOP BACKGROUND -->
     <!-- Top Right Yellow Sun -->
@@ -319,7 +298,7 @@ function getOfficialHhGoaFrameSvg(params: {
       <rect x="45" y="70" width="35" height="40" fill="#FF007F" />
     </g>
 
-    <!-- 4. CENTRAL CIRCULAR PHOTO FRAME RINGS (Pic 2 Match) -->
+    <!-- 4. CENTRAL CIRCULAR PHOTO FRAME RINGS -->
     <!-- Outer Thick Sunshine Yellow Ring -->
     <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius + 12}" fill="none" stroke="#FFDE00" stroke-width="18" filter="url(#shadow)" />
 
@@ -329,7 +308,7 @@ function getOfficialHhGoaFrameSvg(params: {
     <!-- Inner White Ring -->
     <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius}" fill="none" stroke="#FFFFFF" stroke-width="3" />
 
-    <!-- 5. BOTTOM OVERLAY BADGES (Pic 2 Match) -->
+    <!-- 5. BOTTOM OVERLAY BADGES -->
     <!-- Bottom Left Circular "HH GOA 2026" Badge -->
     <g transform="translate(290, 685)" filter="url(#shadow)">
       <circle cx="85" cy="85" r="82" fill="#042917" stroke="#FFDE00" stroke-width="6" />
@@ -345,15 +324,13 @@ function getOfficialHhGoaFrameSvg(params: {
       <text x="85" y="145" font-family="sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">GOA 2026</text>
     </g>
 
-    <!-- Bottom Username / Handle Pill Badge -->
-    <g transform="translate(330, 690)" filter="url(#shadow)">
-      <!-- Main Green Pill Container -->
-      <rect x="0" y="0" width="440" height="74" rx="28" fill="#042917" stroke="#FFDE00" stroke-width="4" />
+    <!-- Bottom Username / Handle Pill Badge (Clean single pill with NO time text!) -->
+    <g transform="translate(330, 695)" filter="url(#shadow)">
+      <rect x="0" y="0" width="440" height="64" rx="24" fill="#042917" stroke="#FFDE00" stroke-width="4" />
     </g>
 
     <!-- Vector Text Layer inside Username Pill -->
     ${usernameVectorText}
-    ${roleVectorText}
 
     <!-- 6. VERY BOTTOM TAGLINE "BUILD • BREAK • REPEAT" -->
     <g transform="translate(0, 930)">

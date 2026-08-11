@@ -13,9 +13,8 @@ export default function HomePage() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // Username / Handle Input (as shown in Pic 2)
+  // Username / Handle Input (as shown in official template image)
   const [username, setUsername] = useState("usernamehere");
-  const [roleText, setRoleText] = useState("LIVE AT 8:00 PM");
 
   // Crop & Positioning State
   const [scale, setScale] = useState(1.0);
@@ -67,7 +66,6 @@ export default function HomePage() {
           format: "pfp",
           imageBase64: selectedImageSrc,
           username: username || "usernamehere",
-          role: roleText || "LIVE AT 8:00 PM",
           frameStyle,
           scale,
           offsetX,
@@ -128,39 +126,24 @@ export default function HomePage() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6 overflow-hidden"
                 >
-                  {/* Handle & Badge Subtext Input Card */}
+                  {/* Handle Input Card */}
                   <div className="glass-card rounded-3xl p-5 space-y-4 border border-[#FFDE00]/40 bg-[#042917]/90">
                     <div className="flex items-center gap-2 border-b border-emerald-800/80 pb-3">
                       <Sparkles className="w-4 h-4 text-[#FFDE00]" />
-                      <h4 className="text-sm font-extrabold text-[#FFDE00]">Username & Badge Subtext</h4>
+                      <h4 className="text-sm font-extrabold text-[#FFDE00]">Username / Handle</h4>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5 text-[#FF007F]" /> Username / Handle
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. usernamehere or Satoshi"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                          Badge Tagline
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. LIVE AT 8:00 PM or BUILDER"
-                          value={roleText}
-                          onChange={(e) => setRoleText(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500"
-                        />
-                      </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-[#FF007F]" /> Your Username or Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. usernamehere or Satoshi"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500"
+                      />
                     </div>
                   </div>
 
