@@ -13,13 +13,10 @@ export interface GeneratePfpOptions {
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * Exact customer specifications:
- * 1. Composites user photo into central circular window (left: 246, top: 202, diameter: 512px)
- * 2. Large symmetrical green pill patch (width: 684px, height: 104px, left: 170px, top: 670px):
- *    - Completely covers the "HH GOA 2026" circular seal on the left (HH removed!)
- *    - Completely covers "LIVE AT 8:00 PM" time text at the bottom (Time removed!)
- * 3. Uses pure SVG vector path rendering for user name so ZERO font tofu boxes can ever occur!
- * 4. Seamless top right background blend removing "2:47 PM STUDIO".
+ * 1. Composites user photo into center window (left: 246, top: 202, diameter: 512px)
+ * 2. Seamlessly erases "LIVE AT 8:00 PM" and old pill text
+ * 3. Completely covers HH seal on the left
+ * 4. Renders user's custom input name (e.g. "part of HHG") via SVG vector path (zero tofu boxes)
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
   const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "part of HHG" } = options;
@@ -90,7 +87,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const nameVectorPathSvg = renderVectorText({
     text: rawName,
     x: 512,
-    y: 722,
+    y: 720,
     fontSize: 24,
     stroke: "#FFFFFF",
     strokeWidth: 2.8,
@@ -100,10 +97,11 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
 
   // Clean Overlay SVG:
   // 1. Removes top right "2:47 PM STUDIO" seamlessly (#064426)
-  // 2. Symmetrical pill container (width: 684px, height: 104px, left: 170px):
+  // 2. Extra eraser patch covering LIVE AT 8:00 PM below y: 745 (#085B33 background color match)
+  // 3. Symmetrical pill container (width: 684px, height: 104px, left: 170px, top: 665px)
   //    - Completely covers HH seal on the left
-  //    - Completely covers LIVE AT 8:00 PM text on the bottom
-  // 3. Renders name via SVG vector path (zero tofu boxes!)
+  //    - Completely covers old pill
+  // 4. Renders user's entered name via SVG vector path
   const overlaySvg = `
   <svg width="${targetSize}" height="${targetSize}" viewBox="0 0 ${targetSize} ${targetSize}" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -116,12 +114,15 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     <!-- 1. REMOVE "2:47 PM STUDIO" (Cover top right seamlessly with header green fill) -->
     <rect x="780" y="50" width="200" height="40" fill="#064426" />
 
-    <!-- 2. LARGE SYMMETRICAL PILL CONTAINER (Covers HH Seal + Old Pill + LIVE AT 8:00 PM) -->
-    <g transform="translate(170, 670)" filter="url(#pillShadow)">
+    <!-- 2. ERASE "LIVE AT 8:00 PM" UNDERNEATH PILL (Cover bottom yellow text with shoreline green fill) -->
+    <rect x="250" y="745" width="520" height="45" fill="#085732" rx="10" />
+
+    <!-- 3. LARGE SYMMETRICAL PILL CONTAINER (Covers HH Seal + Old Pill) -->
+    <g transform="translate(170, 665)" filter="url(#pillShadow)">
       <rect x="0" y="0" width="684" height="104" rx="36" fill="#04351D" stroke="#FFDE00" stroke-width="5" />
     </g>
 
-    <!-- 3. PURE SVG VECTOR PATH USER NAME (Zero font tofu boxes guaranteed) -->
+    <!-- 4. PURE SVG VECTOR PATH USER NAME (Renders exact input name e.g. "part of HHG") -->
     ${nameVectorPathSvg}
   </svg>
   `;

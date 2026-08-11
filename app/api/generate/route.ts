@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     } else {
       const body = await req.json();
       format = body.format || "pfp";
-      name = body.name || "";
+      name = body.username || body.name || "";
       role = body.role || "";
       title = body.title || "";
       frameStyle = body.frameStyle || "emerald-goa";
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
         scale,
         offsetX,
         offsetY,
-        username: name || "builder",
+        username: name || "part of HHG",
       });
     }
 
