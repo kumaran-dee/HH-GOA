@@ -4,14 +4,14 @@ import { useEffect } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 
 export default function GoaBeachBackground() {
-  // Smooth spring physics for fluid mouse & touch movement
-  const springConfig = { damping: 25, stiffness: 120 };
+  // Smooth spring physics for fluid mouse & touch parallax movement
+  const springConfig = { damping: 30, stiffness: 100 };
   const mouseX = useSpring(0, springConfig);
   const mouseY = useSpring(0, springConfig);
 
   // Parallax displacement
-  const translateX = useTransform(mouseX, [-0.5, 0.5], [-30, 30]);
-  const translateY = useTransform(mouseY, [-0.5, 0.5], [-20, 20]);
+  const translateX = useTransform(mouseX, [-0.5, 0.5], [-25, 25]);
+  const translateY = useTransform(mouseY, [-0.5, 0.5], [-15, 15]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -43,20 +43,23 @@ export default function GoaBeachBackground() {
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Rich Forest Green Base Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#063C21] via-[#084D2B] to-[#042816]" />
+      {/* Base Deep Emerald Forest Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#021F11] via-[#04331C] to-[#02180D]" />
+
+      {/* Ambient Radial Sunshine Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#FFDE00] rounded-full blur-[200px] opacity-15" />
 
       {/* Moveable Parallax Poster Artwork Container */}
       <motion.div
         style={{
           x: translateX,
           y: translateY,
-          scale: 1.06,
+          scale: 1.05,
         }}
         className="absolute inset-0 w-full h-full"
       >
         <svg
-          className="w-full h-full object-cover opacity-45 sm:opacity-50"
+          className="w-full h-full object-cover opacity-50 sm:opacity-55"
           viewBox="0 0 1200 1400"
           preserveAspectRatio="xMidYMin slice"
           xmlns="http://www.w3.org/2000/svg"
@@ -68,15 +71,20 @@ export default function GoaBeachBackground() {
             </linearGradient>
 
             <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#085732" />
-              <stop offset="100%" stopColor="#04331C" />
+              <stop offset="0%" stopColor="#085B33" />
+              <stop offset="100%" stopColor="#032D19" />
             </linearGradient>
+
+            <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="8" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
           </defs>
 
           {/* TOP SECTION: OFFICIAL HACKER HOUSE GOA POSTER HEADER */}
           <g transform="translate(0, 60)">
             {/* Tall Yellow Serif "HACKER HOUSE" Title Vector */}
-            <g fill="#FFDE00">
+            <g fill="#FFDE00" filter="url(#softGlow)">
               {/* H */}
               <path d="M 60 40 H 90 V 100 H 150 V 40 H 180 V 180 H 150 V 120 H 90 V 180 H 60 Z" />
               {/* A */}
@@ -103,7 +111,7 @@ export default function GoaBeachBackground() {
 
             {/* Hot Pink Central Devanagari Badge "गोवा" */}
             <g transform="translate(525, 65)">
-              <rect x="0" y="0" width="150" height="70" rx="20" fill="#FF007F" stroke="#FFFFFF" strokeWidth="4" />
+              <rect x="0" y="0" width="150" height="70" rx="22" fill="#FF007F" stroke="#FFFFFF" strokeWidth="4" />
               <g transform="translate(22, 16)">
                 <path d="M 0 4 H 108" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" />
                 <path d="M 14 4 V 28 Q 14 34 7 34 Q 0 34 0 28 Q 0 22 7 22 H 14 M 30 4 V 38" fill="none" stroke="#FFFFFF" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -116,17 +124,12 @@ export default function GoaBeachBackground() {
             <text x="60" y="225" fontFamily="monospace" fontWeight="700" fontSize="14" fill="#FFDE00" letterSpacing="2">
               GOA, INDIA  •  28 - 31 OCT 2026
             </text>
-
-            {/* Subtext: 2:47 PM STUDIO */}
-            <text x="1140" y="225" fontFamily="monospace" fontWeight="700" fontSize="14" fill="#FFDE00" letterSpacing="2" textAnchor="end">
-              2:47 PM STUDIO
-            </text>
           </g>
 
           {/* BOTTOM SECTION: TROPICAL BEACH SUNSET ARTWORK */}
           <g transform="translate(0, 360)">
             {/* Rising Sun */}
-            <circle cx="600" cy="450" r="180" fill="url(#sunGlow)" />
+            <circle cx="600" cy="450" r="180" fill="url(#sunGlow)" filter="url(#softGlow)" />
 
             {/* Sun Rays */}
             <g stroke="#FFDE00" strokeWidth="5" strokeLinecap="round">
@@ -140,7 +143,7 @@ export default function GoaBeachBackground() {
             </g>
 
             {/* Hills */}
-            <path d="M 0 540 Q 300 480 600 520 Q 900 480 1200 540 V 1040 H 0 Z" fill="#074828" />
+            <path d="M 0 540 Q 300 480 600 520 Q 900 480 1200 540 V 1040 H 0 Z" fill="#054426" />
 
             {/* Ocean */}
             <path d="M 0 560 Q 300 540 600 560 Q 900 540 1200 560 V 1040 H 0 Z" fill="url(#oceanGrad)" />
@@ -151,8 +154,8 @@ export default function GoaBeachBackground() {
 
             {/* Beach Shack "GOA BEACH" */}
             <g transform="translate(760, 640)">
-              <rect x="0" y="45" width="140" height="95" fill="#074828" stroke="#FFFFFF" strokeWidth="3" />
-              <polygon points="-15,45 70,10 155,45" fill="#042F1A" stroke="#FFFFFF" strokeWidth="3" />
+              <rect x="0" y="45" width="140" height="95" fill="#064426" stroke="#FFFFFF" strokeWidth="3" />
+              <polygon points="-15,45 70,10 155,45" fill="#032D19" stroke="#FFFFFF" strokeWidth="3" />
               <rect x="20" y="-5" width="100" height="26" rx="6" fill="#FF007F" stroke="#FFFFFF" strokeWidth="2" />
               <text x="70" y="13" fontFamily="sans-serif" fontWeight="900" fontSize="11" fill="#FFFFFF" textAnchor="middle">GOA BEACH</text>
               <path d="M -25 55 Q -15 25 -30 115" stroke="#FFDE00" strokeWidth="9" strokeLinecap="round" />
@@ -162,7 +165,7 @@ export default function GoaBeachBackground() {
             {/* Left Palm Trees */}
             <g transform="translate(60, 240)">
               <path d="M 60 520 Q 120 300 20 0" fill="none" stroke="#FFDE00" strokeWidth="16" strokeLinecap="round" />
-              <path d="M 60 520 Q 120 300 20 0" fill="none" stroke="#074828" strokeWidth="9" strokeLinecap="round" />
+              <path d="M 60 520 Q 120 300 20 0" fill="none" stroke="#064426" strokeWidth="9" strokeLinecap="round" />
               <g transform="translate(20, 0)">
                 <path d="M 0 0 Q -90 -45 -135 45 Q -45 22 0 0 M 0 0 Q -45 -90 45 -110 Q 22 -22 0 0 M 0 0 Q 90 -65 135 22 Q 45 11 0 0 M 0 0 Q 110 45 90 110 Q 35 45 0 0" fill="#0A5C36" stroke="#FFDE00" strokeWidth="3.5" />
               </g>
@@ -171,7 +174,7 @@ export default function GoaBeachBackground() {
             {/* Right Palm Trees */}
             <g transform="translate(1040, 240)">
               <path d="M 20 520 Q -40 300 60 0" fill="none" stroke="#FFDE00" strokeWidth="16" strokeLinecap="round" />
-              <path d="M 20 520 Q -40 300 60 0" fill="none" stroke="#074828" strokeWidth="9" strokeLinecap="round" />
+              <path d="M 20 520 Q -40 300 60 0" fill="none" stroke="#064426" strokeWidth="9" strokeLinecap="round" />
               <g transform="translate(60, 0)">
                 <path d="M 0 0 Q 90 -45 135 45 Q 45 22 0 0 M 0 0 Q 45 -90 -45 -110 Q -22 -22 0 0 M 0 0 Q -90 -65 -135 22 Q -45 11 0 0 M 0 0 Q -110 45 -90 110 Q -35 45 0 0" fill="#0A5C36" stroke="#FFDE00" strokeWidth="3.5" />
               </g>
@@ -191,8 +194,8 @@ export default function GoaBeachBackground() {
         </svg>
       </motion.div>
 
-      {/* Dark Readability Vignette Overlay */}
-      <div className="absolute inset-0 bg-[#06381F]/30 backdrop-blur-[2px]" />
+      {/* Dark Vignette Glass Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#02190E]/60 via-[#04331C]/45 to-[#02180D]/70 backdrop-blur-[3px]" />
     </div>
   );
 }
