@@ -42,7 +42,7 @@ export default function ModeSelector({ mode, onSelectMode }: ModeSelectorProps) 
         </p>
       </button>
 
-      {/* Format B: Builder ID Card */}
+      {/* Format B: Aadhaar Style Builder Pass */}
       <button
         type="button"
         onClick={() => onSelectMode("builder-card")}
@@ -63,11 +63,11 @@ export default function ModeSelector({ mode, onSelectMode }: ModeSelectorProps) 
           </div>
           <div>
             <span className="text-xs font-bold text-[#FF007F] uppercase tracking-wider">Format B</span>
-            <h3 className="text-lg font-extrabold text-white leading-tight">Builder ID Pass</h3>
+            <h3 className="text-lg font-extrabold text-white leading-tight">Aadhaar Builder Card</h3>
           </div>
         </div>
         <p className="text-xs text-slate-300 leading-relaxed">
-          Social media event badge pass (1200x630) featuring your name, stack, photo, and generated builder title.
+          Official Aadhaar / National ID Card style event badge featuring photo, name, role, title & barcode.
         </p>
       </button>
     </div>

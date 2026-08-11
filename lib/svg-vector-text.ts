@@ -1,6 +1,6 @@
 /**
- * Pure SVG Vector Path Typography Renderer
- * Converts text strings into pure SVG <path> elements so they render 100% identically
+ * Pure SVG Vector Path Typography & Barcode Renderer
+ * Converts text strings and barcodes into pure SVG <path> elements so they render 100% identically
  * on ALL servers (Windows, Linux, Vercel, Sharp, macOS) without relying on system fonts.
  */
 
@@ -114,4 +114,27 @@ export function renderVectorText(options: RenderVectorTextOptions): string {
   });
 
   return `<g class="vector-text">${svgPaths}</g>`;
+}
+
+/**
+ * Generates vector path barcode lines for Aadhaar / Official Card aesthetic
+ */
+export function generateVectorBarcode(x: number, y: number, width: number, height: number, color = "#FFFFFF"): string {
+  const bars = [3, 1, 4, 1, 2, 5, 2, 1, 3, 2, 1, 4, 2, 3, 1, 5, 2, 1, 4, 1, 3, 2, 1, 4];
+  const totalUnits = bars.reduce((a, b) => a + b, 0);
+  const unitWidth = width / totalUnits;
+
+  let currentX = x;
+  let paths = "";
+
+  bars.forEach((barWidth, index) => {
+    const isBar = index % 2 === 0;
+    const w = barWidth * unitWidth;
+    if (isBar) {
+      paths += `<rect x="${currentX.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${height}" fill="${color}" />`;
+    }
+    currentX += w;
+  });
+
+  return `<g class="vector-barcode">${paths}</g>`;
 }
