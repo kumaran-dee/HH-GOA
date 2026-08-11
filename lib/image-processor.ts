@@ -13,15 +13,17 @@ export interface GeneratePfpOptions {
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * Uses the exact official reference template artwork image (`public/hh-goa-template.jpg`)
- * for 100% pixel-perfect graphic rendering!
+ * Exact alignment fix:
+ * 1. Composites circular photo into center window (left: 246, top: 202, diameter: 512px)
+ * 2. Covers original pill in template image with a clean matching emerald green pill
+ * 3. Renders ONLY @username centered inside pill (zero overlap, zero time text)
+ * 4. Blends top right cleanly with zero patch artifacts
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
   const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder" } = options;
 
   const targetSize = 1024;
 
-  // Path to official reference template image asset
   const templatePath = path.join(process.cwd(), "public", "hh-goa-template.jpg");
   
   let baseTemplateBuffer: Buffer;
@@ -30,7 +32,6 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
       .resize(targetSize, targetSize, { fit: "fill" })
       .toBuffer();
   } else {
-    // Fallback base background if file not found
     baseTemplateBuffer = await sharp({
       create: {
         width: targetSize,
@@ -41,12 +42,12 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     }).png().toBuffer();
   }
 
-  // Exact coordinates matching the circular frame in the template image
+  // Exact coordinates matching circular photo area in hh-goa-template.jpg
   const circleDiameter = 512;
-  const circleCenterX = 512;
-  const circleCenterY = 472;
-  const circleLeft = circleCenterX - circleDiameter / 2;
-  const circleTop = circleCenterY - circleDiameter / 2;
+  const circleLeft = 246;
+  const circleTop = 202;
+  const circleCenterX = circleLeft + circleDiameter / 2;
+  const circleCenterY = circleTop + circleDiameter / 2;
 
   const userImg = sharp(imageBuffer);
   const metadata = await userImg.metadata();
@@ -63,7 +64,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const left = Math.max(0, Math.min(srcW - cropW, Math.round(baseLeft - offsetX * srcW)));
   const top = Math.max(0, Math.min(srcH - cropH, Math.round(baseTop - offsetY * srcH)));
 
-  // Crop & resize user photo to circle size
+  // Crop & resize user photo to circle diameter
   const resizedAvatar = await userImg
     .extract({ left, top, width: cropW, height: cropH })
     .resize(circleDiameter, circleDiameter, { fit: "cover" })
@@ -86,16 +87,10 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const rawName = username.trim() || "builder";
   const formattedUsername = rawName.startsWith("@") ? rawName : `@${rawName}`;
 
-  // Generate SVG Overlay to place over the template image:
-  // 1. Covers "2:47 PM STUDIO" at top right with dark green rect
-  // 2. Covers default username pill with a clean green pill containing ONLY @username in bold vector text
-  // 3. Applies inner yellow/white accent ring around circular photo
-  const overlaySvg = getTemplateOverlaySvg({
+  // Generate Clean Overlay SVG matching exact pill dimensions of template image
+  const overlaySvg = getExactCleanOverlaySvg({
     size: targetSize,
     username: formattedUsername.toLowerCase(),
-    circleCenterX,
-    circleCenterY,
-    circleDiameter,
   });
 
   // Step 1: Composite circular user photo onto base template image
@@ -110,7 +105,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Step 2: Composite SVG Overlay (clean username pill & ring frame) on top
+  // Step 2: Composite clean overlay on top to replace old pill & remove time text
   const finalImage = await sharp(avatarOnTemplate)
     .composite([
       {
@@ -146,54 +141,33 @@ export async function generateBuilderCard(options: {
   });
 }
 
-function getTemplateOverlaySvg(params: {
+function getExactCleanOverlaySvg(params: {
   size: number;
   username: string;
-  circleCenterX: number;
-  circleCenterY: number;
-  circleDiameter: number;
 }): string {
-  const { size, username, circleCenterX, circleCenterY, circleDiameter } = params;
+  const { size, username } = params;
 
-  const radius = circleDiameter / 2;
-
-  // Vector Typography for Username
+  // Vector Typography for Username (centered inside new pill)
   const usernameVectorText = renderVectorText({
     text: username,
-    x: 546,
-    y: 730,
-    fontSize: 26,
+    x: 512,
+    y: 742,
+    fontSize: 28,
     stroke: "#FFFFFF",
-    strokeWidth: 3.8,
+    strokeWidth: 4.0,
     letterSpacing: 2,
     align: "center",
   });
 
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feGaussianBlur stdDeviation="5" result="blur" />
-        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-      </filter>
-    </defs>
-
-    <!-- 1. REMOVE TIME TEXT "2:47 PM STUDIO" (Cover top right with matching forest green fill) -->
+    <!-- 1. REMOVE "2:47 PM STUDIO" WITH SEAMLESS COLOR MATCH (#064426) -->
     <rect x="800" y="55" width="180" height="35" fill="#064426" />
 
-    <!-- 2. CIRCULAR FRAME INNER RINGS -->
-    <!-- Yellow Outer Ring -->
-    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius + 10}" fill="none" stroke="#FFDE00" stroke-width="16" />
-
-    <!-- Green Inner Line -->
-    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius + 2}" fill="none" stroke="#064426" stroke-width="4" />
-
-    <!-- White Inner Line -->
-    <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius}" fill="none" stroke="#FFFFFF" stroke-width="3" />
-
-    <!-- 3. CLEAN USERNAME PILL BADGE (Covering old pill & removing "LIVE AT 8:00 PM") -->
-    <g transform="translate(326, 690)" filter="url(#shadow)">
-      <rect x="0" y="0" width="440" height="64" rx="24" fill="#042917" stroke="#FFDE00" stroke-width="4" />
+    <!-- 2. CLEAN GREEN PILL OVERLAY (Completely covers old pill & LIVE AT 8:00 PM text) -->
+    <g transform="translate(282, 694)">
+      <!-- Main Green Pill Container -->
+      <rect x="0" y="0" width="460" height="80" rx="30" fill="#04331C" stroke="#FFDE00" stroke-width="5" />
     </g>
 
     <!-- Vector Text Layer for Username -->
