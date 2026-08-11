@@ -72,7 +72,6 @@ export async function POST(req: NextRequest) {
         offsetX,
         offsetY,
         username: name || "builder",
-        frameStyle,
       });
     }
 

@@ -7,20 +7,27 @@ export interface GeneratePfpOptions {
   offsetX?: number;
   offsetY?: number;
   username?: string;
-  frameStyle?: string;
 }
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * All typography is rendered via pure SVG vector paths to ensure zero missing font boxes.
+ * Exact position alignment matching the official 64005 template:
+ * - Circle Photo: Left 244px, Top 206px, Diameter 512px
+ * - Username Pill: Left 330px, Top 694px, Width 440px, Height 64px
+ * - Zero time text ("2:47 PM STUDIO" and "LIVE AT 8:00 PM" removed)
+ * - 100% Vector typography for zero tofu missing font boxes
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
-  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "BUILDER" } = options;
+  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder" } = options;
 
   const targetSize = 1024;
-  const circleDiameter = 500;
-  const circleCenterX = 512;
-  const circleCenterY = 472;
+
+  // Exact coordinates matching 64005 template layout
+  const circleDiameter = 512;
+  const circleLeft = 244;
+  const circleTop = 206;
+  const circleCenterX = circleLeft + circleDiameter / 2;
+  const circleCenterY = circleTop + circleDiameter / 2;
 
   const userImg = sharp(imageBuffer);
   const metadata = await userImg.metadata();
@@ -37,7 +44,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const left = Math.max(0, Math.min(srcW - cropW, Math.round(baseLeft - offsetX * srcW)));
   const top = Math.max(0, Math.min(srcH - cropH, Math.round(baseTop - offsetY * srcH)));
 
-  // Extract and resize cropped photo to circle size
+  // Extract & resize cropped photo to circle diameter
   const resizedAvatar = await userImg
     .extract({ left, top, width: cropW, height: cropH })
     .resize(circleDiameter, circleDiameter, { fit: "cover" })
@@ -56,14 +63,14 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Base canvas background SVG
+  // Base background canvas SVG
   const baseCanvasSvg = getOfficialHhGoaBackgroundSvg(targetSize);
 
-  // Clean name string
-  const cleanName = username.trim();
-  const formattedUsername = cleanName.startsWith("@") ? cleanName : `@${cleanName}`;
+  // Clean name format
+  const rawName = username.trim() || "builder";
+  const formattedUsername = rawName.startsWith("@") ? rawName : `@${rawName}`;
 
-  // Generate Frame Overlay SVG (100% pure vector paths for ALL text)
+  // Generate Frame Overlay SVG
   const frameSvg = getOfficialHhGoaFrameOverlaySvg({
     size: targetSize,
     username: formattedUsername.toUpperCase(),
@@ -77,8 +84,8 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .composite([
       {
         input: circularAvatar,
-        left: circleCenterX - circleDiameter / 2,
-        top: circleCenterY - circleDiameter / 2,
+        left: circleLeft,
+        top: circleTop,
       },
       {
         input: Buffer.from(frameSvg),
@@ -93,7 +100,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
 }
 
 /**
- * Format B: Builder ID Pass (1200x630 PNG)
+ * Format B: Builder Pass Badge
  */
 export async function generateBuilderCard(options: {
   imageBuffer: Buffer;
@@ -109,13 +116,10 @@ export async function generateBuilderCard(options: {
     scale: options.scale,
     offsetX: options.offsetX,
     offsetY: options.offsetY,
-    username: options.name || "BUILDER",
+    username: options.name || "builder",
   });
 }
 
-/**
- * Base Background SVG
- */
 function getOfficialHhGoaBackgroundSvg(size: number): string {
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
@@ -126,9 +130,6 @@ function getOfficialHhGoaBackgroundSvg(size: number): string {
   `;
 }
 
-/**
- * Devanagari "गोवा" Hot Pink SVG Vector Badge Component
- */
 function getDevanagariGoaBadge(x: number, y: number, scale = 1): string {
   return `
   <g transform="translate(${x}, ${y}) scale(${scale})">
@@ -143,10 +144,6 @@ function getDevanagariGoaBadge(x: number, y: number, scale = 1): string {
   `;
 }
 
-/**
- * Overlay SVG Frame for Official Hacker House Goa Template
- * ALL text elements are converted to pure SVG vector paths so NO font rendering boxes exist.
- */
 function getOfficialHhGoaFrameOverlaySvg(params: {
   size: number;
   username: string;
@@ -172,11 +169,11 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
 
   const usernameVectorText = renderVectorText({
     text: username,
-    x: 520,
-    y: 728,
+    x: 550,
+    y: 726,
     fontSize: 26,
     stroke: "#FFFFFF",
-    strokeWidth: 4.0,
+    strokeWidth: 3.8,
     letterSpacing: 2,
     align: "center",
   });
@@ -257,7 +254,7 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
     <!-- Hot Pink "गोवा" Badge overlaying middle -->
     ${goaBadge}
 
-    <!-- Header Subtitle Text -->
+    <!-- Header Subtitle Text (NO 2:47 PM STUDIO time text!) -->
     ${dateVectorText}
 
     <!-- 2. SUNSHINE & BIRDS IN TOP BACKGROUND -->
@@ -293,7 +290,7 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
       <path d="M -20 400 Q -100 200 0 0" fill="none" stroke="#FFDE00" stroke-width="12" stroke-linecap="round" />
       <path d="M -20 400 Q -100 200 0 0" fill="none" stroke="#064426" stroke-width="7" stroke-linecap="round" />
       <g transform="translate(0, 0)">
-        <path d="M 0 0 Q 80 -35 120 35 Q 40 18 0 0 M 0 0 Q 35 -70 -35 -85 Q -18 -18 0 0 M 0 0 Q -70 -50 -110 18 Q -35 9 0 0 M 0 0 Q -85 35 -70 85 Q -28 35 0 0" fill="#0A5C36" stroke="#FFDE00" stroke-width="2.5" />
+        <path d="M 0 0 Q 80 -35 120 35 Q 40 18 0 0 M 0 0 Q 35 -70 -35 -85 Q -18 -18 0 0 M 0 0 Q -70 -50 -110 18 Q -35 9 0 0 M 0 0 Q -110 45 -90 110 Q -35 45 0 0" fill="#0A5C36" stroke="#FFDE00" stroke-width="2.5" />
       </g>
     </g>
 
@@ -316,7 +313,7 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
       <rect x="45" y="70" width="35" height="40" fill="#FF007F" />
     </g>
 
-    <!-- 4. CENTRAL CIRCULAR PHOTO FRAME RINGS -->
+    <!-- 4. CENTRAL CIRCULAR PHOTO FRAME RINGS (Matches 64005 template) -->
     <!-- Outer Thick Sunshine Yellow Ring -->
     <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${radius + 12}" fill="none" stroke="#FFDE00" stroke-width="18" filter="url(#shadow)" />
 
@@ -340,8 +337,8 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
     </g>
     ${sealGoaText}
 
-    <!-- Bottom Username / Handle Pill Badge (Clean single pill with NO time text!) -->
-    <g transform="translate(330, 695)" filter="url(#shadow)">
+    <!-- Bottom Username / Handle Pill Badge (Clean single pill centered at X: 330) -->
+    <g transform="translate(330, 692)" filter="url(#shadow)">
       <rect x="0" y="0" width="440" height="64" rx="24" fill="#042917" stroke="#FFDE00" stroke-width="4" />
     </g>
 
