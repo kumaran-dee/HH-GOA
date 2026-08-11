@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
+import { renderVectorText } from "./svg-vector-text";
 
 export interface GeneratePfpOptions {
   imageBuffer: Buffer;
@@ -12,11 +13,13 @@ export interface GeneratePfpOptions {
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * Direct template compositing with clean overlay:
- * 1. Composites user photo into center window (left: 246, top: 202, diameter: 512px)
- * 2. Solid large pill patch (width: 490px, height: 92px) completely covering old pill & LIVE AT 8:00 PM
- * 3. Crisp solid white username text (default "part of HHG")
- * 4. Seamless top right background blend removing 2:47 PM STUDIO
+ * Exact customer specifications:
+ * 1. Composites user photo into central circular window (left: 246, top: 202, diameter: 512px)
+ * 2. Large symmetrical green pill patch (width: 684px, height: 104px, left: 170px, top: 670px):
+ *    - Completely covers the "HH GOA 2026" circular seal on the left (HH removed!)
+ *    - Completely covers "LIVE AT 8:00 PM" time text at the bottom (Time removed!)
+ * 3. Uses pure SVG vector path rendering for user name so ZERO font tofu boxes can ever occur!
+ * 4. Seamless top right background blend removing "2:47 PM STUDIO".
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
   const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "part of HHG" } = options;
@@ -80,41 +83,46 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Clean username handle format
-  const rawName = username.trim() || "part of HHG";
+  // Clean username text
+  const rawName = (username.trim() || "part of HHG").toUpperCase();
+
+  // Pure SVG Vector Typography for User Name (100% font-independent, ZERO tofu boxes)
+  const nameVectorPathSvg = renderVectorText({
+    text: rawName,
+    x: 512,
+    y: 722,
+    fontSize: 24,
+    stroke: "#FFFFFF",
+    strokeWidth: 2.8,
+    letterSpacing: 2,
+    align: "center",
+  });
 
   // Clean Overlay SVG:
-  // - Covers top right "2:47 PM STUDIO" with exact background color (#064426)
-  // - Large pill container (width: 490px, height: 92px) completely covering old pill and "LIVE AT 8:00 PM"
-  // - Crisp solid white filled username text
+  // 1. Removes top right "2:47 PM STUDIO" seamlessly (#064426)
+  // 2. Symmetrical pill container (width: 684px, height: 104px, left: 170px):
+  //    - Completely covers HH seal on the left
+  //    - Completely covers LIVE AT 8:00 PM text on the bottom
+  // 3. Renders name via SVG vector path (zero tofu boxes!)
   const overlaySvg = `
   <svg width="${targetSize}" height="${targetSize}" viewBox="0 0 ${targetSize} ${targetSize}" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <filter id="pillShadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feGaussianBlur stdDeviation="5" result="blur" />
+        <feGaussianBlur stdDeviation="6" result="blur" />
         <feComposite in="SourceGraphic" in2="blur" operator="over" />
       </filter>
     </defs>
 
-    <!-- 1. REMOVE "2:47 PM STUDIO" (Cover top right seamlessly with exact header color) -->
+    <!-- 1. REMOVE "2:47 PM STUDIO" (Cover top right seamlessly with header green fill) -->
     <rect x="780" y="50" width="200" height="40" fill="#064426" />
 
-    <!-- 2. LARGE PILL CONTAINER (Completely hides old pill & LIVE AT 8:00 PM text) -->
-    <g transform="translate(267, 686)" filter="url(#pillShadow)">
-      <rect x="0" y="0" width="490" height="92" rx="34" fill="#04351D" stroke="#FFDE00" stroke-width="5" />
+    <!-- 2. LARGE SYMMETRICAL PILL CONTAINER (Covers HH Seal + Old Pill + LIVE AT 8:00 PM) -->
+    <g transform="translate(170, 670)" filter="url(#pillShadow)">
+      <rect x="0" y="0" width="684" height="104" rx="36" fill="#04351D" stroke="#FFDE00" stroke-width="5" />
     </g>
 
-    <!-- 3. CRISP SOLID WHITE USERNAME TEXT -->
-    <text
-      x="512"
-      y="743"
-      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-      font-weight="900"
-      font-size="28"
-      fill="#FFFFFF"
-      text-anchor="middle"
-      letter-spacing="1.5"
-    >${escapeXml(rawName)}</text>
+    <!-- 3. PURE SVG VECTOR PATH USER NAME (Zero font tofu boxes guaranteed) -->
+    ${nameVectorPathSvg}
   </svg>
   `;
 
@@ -130,7 +138,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Step 2: Composite clean overlay on top to replace old pill & remove time text
+  // Step 2: Composite clean overlay on top
   const finalImage = await sharp(avatarOnTemplate)
     .composite([
       {
@@ -143,15 +151,6 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .toBuffer();
 
   return finalImage;
-}
-
-function escapeXml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
 }
 
 /**
