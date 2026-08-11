@@ -1,7 +1,6 @@
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
-import { renderVectorText } from "./svg-vector-text";
 
 export interface GeneratePfpOptions {
   imageBuffer: Buffer;
@@ -13,11 +12,11 @@ export interface GeneratePfpOptions {
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * Exact alignment fix:
- * 1. Composites circular photo into center window (left: 246, top: 202, diameter: 512px)
- * 2. Covers original pill in template image with a clean matching emerald green pill
- * 3. Renders ONLY @username centered inside pill (zero overlap, zero time text)
- * 4. Blends top right cleanly with zero patch artifacts
+ * Direct template compositing with clean overlay:
+ * 1. Composites user photo into central circular window (left: 246, top: 202, diameter: 512px)
+ * 2. Solid large pill patch (width: 490px, height: 92px) completely covering old pill & LIVE AT 8:00 PM
+ * 3. Crisp solid white username text (fill: #FFFFFF)
+ * 4. Seamless top right background blend removing 2:47 PM STUDIO
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
   const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder" } = options;
@@ -42,7 +41,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     }).png().toBuffer();
   }
 
-  // Exact coordinates matching circular photo area in hh-goa-template.jpg
+  // Exact coordinates matching circular photo area in template
   const circleDiameter = 512;
   const circleLeft = 246;
   const circleTop = 202;
@@ -87,11 +86,40 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const rawName = username.trim() || "builder";
   const formattedUsername = rawName.startsWith("@") ? rawName : `@${rawName}`;
 
-  // Generate Clean Overlay SVG matching exact pill dimensions of template image
-  const overlaySvg = getExactCleanOverlaySvg({
-    size: targetSize,
-    username: formattedUsername.toLowerCase(),
-  });
+  // Clean Overlay SVG:
+  // - Covers top right "2:47 PM STUDIO" with exact background color (#064426)
+  // - Large pill container (width: 490px, height: 92px) completely covering old pill and "LIVE AT 8:00 PM"
+  // - Crisp solid white filled username text
+  const overlaySvg = `
+  <svg width="${targetSize}" height="${targetSize}" viewBox="0 0 ${targetSize} ${targetSize}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="pillShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur stdDeviation="5" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+
+    <!-- 1. REMOVE "2:47 PM STUDIO" (Cover top right seamlessly with exact header color) -->
+    <rect x="780" y="50" width="200" height="40" fill="#064426" />
+
+    <!-- 2. LARGE PILL CONTAINER (Completely hides old pill & LIVE AT 8:00 PM text) -->
+    <g transform="translate(267, 686)" filter="url(#pillShadow)">
+      <rect x="0" y="0" width="490" height="92" rx="34" fill="#04351D" stroke="#FFDE00" stroke-width="5" />
+    </g>
+
+    <!-- 3. CRISP SOLID WHITE USERNAME TEXT -->
+    <text
+      x="512"
+      y="743"
+      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+      font-weight="900"
+      font-size="30"
+      fill="#FFFFFF"
+      text-anchor="middle"
+      letter-spacing="2"
+    >${escapeXml(formattedUsername)}</text>
+  </svg>
+  `;
 
   // Step 1: Composite circular user photo onto base template image
   const avatarOnTemplate = await sharp(baseTemplateBuffer)
@@ -120,6 +148,15 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   return finalImage;
 }
 
+function escapeXml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 /**
  * Format B: Builder Pass Badge
  */
@@ -139,39 +176,4 @@ export async function generateBuilderCard(options: {
     offsetY: options.offsetY,
     username: options.name || "builder",
   });
-}
-
-function getExactCleanOverlaySvg(params: {
-  size: number;
-  username: string;
-}): string {
-  const { size, username } = params;
-
-  // Vector Typography for Username (centered inside new pill)
-  const usernameVectorText = renderVectorText({
-    text: username,
-    x: 512,
-    y: 742,
-    fontSize: 28,
-    stroke: "#FFFFFF",
-    strokeWidth: 4.0,
-    letterSpacing: 2,
-    align: "center",
-  });
-
-  return `
-  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-    <!-- 1. REMOVE "2:47 PM STUDIO" WITH SEAMLESS COLOR MATCH (#064426) -->
-    <rect x="800" y="55" width="180" height="35" fill="#064426" />
-
-    <!-- 2. CLEAN GREEN PILL OVERLAY (Completely covers old pill & LIVE AT 8:00 PM text) -->
-    <g transform="translate(282, 694)">
-      <!-- Main Green Pill Container -->
-      <rect x="0" y="0" width="460" height="80" rx="30" fill="#04331C" stroke="#FFDE00" stroke-width="5" />
-    </g>
-
-    <!-- Vector Text Layer for Username -->
-    ${usernameVectorText}
-  </svg>
-  `;
 }
