@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { renderVectorText } from "./svg-vector-text";
 
 export interface GeneratePfpOptions {
   imageBuffer: Buffer;
@@ -41,7 +42,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Generate SVG Frame Overlay with guaranteed cross-platform vector typography
+  // Generate SVG Frame Overlay with pure vector path typography
   const frameSvg = getFrameSvgOverlay(frameStyle, targetSize);
 
   // Composite user image + frame overlay
@@ -60,8 +61,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
 }
 
 /**
- * Generate SVG Overlay for 1024x1024 PFP Frames
- * Uses safe vector shapes, gradients, and font declarations for cross-platform rendering
+ * Generate SVG Overlay for 1024x1024 PFP Frames using pure vector shapes and vector typography
  */
 function getFrameSvgOverlay(style: string, size: number): string {
   const strokeWidth = 36;
@@ -102,6 +102,51 @@ function getFrameSvgOverlay(style: string, size: number): string {
     tagBg = "#FFE000";
   }
 
+  // Generate vector typography for top & bottom badges
+  const topVectorText = renderVectorText({
+    text: "GOA • NOV 2026",
+    x: size / 2,
+    y: 56,
+    fontSize: 18,
+    stroke: "#00F2FE",
+    strokeWidth: 2.8,
+    letterSpacing: 4,
+    align: "center",
+  });
+
+  const mainTitleVectorText = renderVectorText({
+    text: "HACKER HOUSE GOA 2026",
+    x: size / 2 - 250,
+    y: size - 122,
+    fontSize: 26,
+    stroke: "#FFFFFF",
+    strokeWidth: 3.5,
+    letterSpacing: 3,
+    align: "left",
+  });
+
+  const subTitleVectorText = renderVectorText({
+    text: "ANJUNA BEACH • OFFICIAL ATTENDEE",
+    x: size / 2 - 250,
+    y: size - 82,
+    fontSize: 14,
+    stroke: "#00F2FE",
+    strokeWidth: 2.4,
+    letterSpacing: 2,
+    align: "left",
+  });
+
+  const tagVectorText = renderVectorText({
+    text: "#FRAMEINGOA",
+    x: size / 2 + 235,
+    y: size - 105,
+    fontSize: 16,
+    stroke: "#FFFFFF",
+    strokeWidth: 3.0,
+    letterSpacing: 2,
+    align: "center",
+  });
+
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -114,40 +159,11 @@ function getFrameSvgOverlay(style: string, size: number): string {
         <stop offset="100%" stop-color="#1E293B" stop-opacity="0.96" />
       </linearGradient>
 
-      <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#FF3B00" />
-        <stop offset="50%" stop-color="#FF8C00" />
-        <stop offset="100%" stop-color="#00F2FE" />
-      </linearGradient>
-
       <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
         <feGaussianBlur stdDeviation="10" result="blur" />
         <feComposite in="SourceGraphic" in2="blur" operator="over" />
       </filter>
     </defs>
-
-    <style>
-      .title-text {
-        font-family: 'DejaVu Sans', 'Liberation Sans', Arial, Helvetica, sans-serif;
-        font-weight: 900;
-        font-size: 32px;
-        fill: #FFFFFF;
-        letter-spacing: 1.5px;
-      }
-      .sub-text {
-        font-family: 'DejaVu Sans', 'Liberation Sans', Arial, Helvetica, sans-serif;
-        font-weight: 700;
-        font-size: 16px;
-        fill: #00F2FE;
-        letter-spacing: 2px;
-      }
-      .tag-text {
-        font-family: 'DejaVu Sans', 'Liberation Sans', Arial, Helvetica, sans-serif;
-        font-weight: 900;
-        font-size: 18px;
-        fill: #FFFFFF;
-      }
-    </style>
 
     <!-- Outer Frame Border -->
     <rect x="${strokeWidth / 2}" y="${strokeWidth / 2}" width="${size - strokeWidth}" height="${size - strokeWidth}" 
@@ -158,12 +174,10 @@ function getFrameSvgOverlay(style: string, size: number): string {
     <path d="M ${size - 140} 70 L ${size - 70} 140" stroke="#FF3B00" stroke-width="8" stroke-linecap="round" />
 
     <!-- Top Badge Tag -->
-    <g transform="translate(${size / 2 - 160}, 44)">
-      <rect x="0" y="0" width="320" height="48" rx="24" fill="url(#badgeBg)" stroke="url(#frameGrad)" stroke-width="2" />
-      <text x="160" y="31" class="sub-text" text-anchor="middle">
-        🌴 GOA • NOV 2026
-      </text>
+    <g transform="translate(${size / 2 - 170}, 44)">
+      <rect x="0" y="0" width="340" height="48" rx="24" fill="url(#badgeBg)" stroke="url(#frameGrad)" stroke-width="2" />
     </g>
+    ${topVectorText}
 
     <!-- Bottom Prominent Event Banner Badge -->
     <g transform="translate(${size / 2 - 340}, ${size - 155})" filter="url(#shadow)">
@@ -176,24 +190,16 @@ function getFrameSvgOverlay(style: string, size: number): string {
               fill="none" stroke="#00F2FE" stroke-width="4" stroke-linecap="round" />
       </g>
 
-      <!-- Main Title: HACKER HOUSE GOA 2026 -->
-      <text x="95" y="48" class="title-text">
-        HACKER HOUSE GOA 2026
-      </text>
-
-      <!-- Subtitle: ANJUNA BEACH, GOA -->
-      <text x="95" y="80" class="sub-text">
-        ANJUNA BEACH • OFFICIAL ATTENDEE
-      </text>
-
       <!-- Hashtag Pill -->
-      <g transform="translate(485, 30)">
-        <rect x="0" y="0" width="165" height="50" rx="18" fill="${tagBg}" />
-        <text x="82" y="32" class="tag-text" text-anchor="middle">
-          #FrameInGoa
-        </text>
+      <g transform="translate(470, 28)">
+        <rect x="0" y="0" width="180" height="54" rx="20" fill="${tagBg}" />
       </g>
     </g>
+
+    <!-- Vector Typography Layer -->
+    ${mainTitleVectorText}
+    ${subTitleVectorText}
+    ${tagVectorText}
   </svg>
   `;
 }
