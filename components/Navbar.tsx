@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Compass, ShieldCheck } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -28,19 +28,6 @@ export default function Navbar() {
             </p>
           </div>
         </Link>
-
-        {/* Status Pill & Badge */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#064426] border border-[#FFDE00]/50 text-xs font-bold text-[#FFDE00]">
-            <Compass className="w-3.5 h-3.5" />
-            <span>28 - 31 OCT 2026</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF007F]/20 border border-[#FF007F]/50 text-xs font-bold text-white">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#FF007F]" />
-            <span>No Signup Required</span>
-          </div>
-        </div>
       </div>
     </header>
   );
