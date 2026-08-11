@@ -12,16 +12,10 @@ export interface GeneratePfpOptions {
 
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
- * Exact match to user template:
- * - Central circular photo frame
- * - Hot Pink "गोवा" Devanagari badge over yellow HACKER HOUSE title
- * - NO time text ("2:47 PM STUDIO" and "LIVE AT 8:00 PM" removed)
- * - HH GOA 2026 circular seal badge
- * - Green username pill badge showing ONLY @username
- * - Tropical beach sunset illustration
+ * All typography is rendered via pure SVG vector paths to ensure zero missing font boxes.
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
-  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder" } = options;
+  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "BUILDER" } = options;
 
   const targetSize = 1024;
   const circleDiameter = 500;
@@ -65,10 +59,14 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   // Base canvas background SVG
   const baseCanvasSvg = getOfficialHhGoaBackgroundSvg(targetSize);
 
-  // Generate Frame Overlay SVG (without any time text)
+  // Clean name string
+  const cleanName = username.trim();
+  const formattedUsername = cleanName.startsWith("@") ? cleanName : `@${cleanName}`;
+
+  // Generate Frame Overlay SVG (100% pure vector paths for ALL text)
   const frameSvg = getOfficialHhGoaFrameOverlaySvg({
     size: targetSize,
-    username: username.trim().startsWith("@") ? username.trim() : `@${username.trim()}`,
+    username: formattedUsername.toUpperCase(),
     circleCenterX,
     circleCenterY,
     circleDiameter,
@@ -111,7 +109,7 @@ export async function generateBuilderCard(options: {
     scale: options.scale,
     offsetX: options.offsetX,
     offsetY: options.offsetY,
-    username: options.name || "builder",
+    username: options.name || "BUILDER",
   });
 }
 
@@ -146,9 +144,8 @@ function getDevanagariGoaBadge(x: number, y: number, scale = 1): string {
 }
 
 /**
- * Overlay SVG Frame for Official Hacker House Goa Template (Exact Match to User Image)
- * - NO time text ("2:47 PM STUDIO" and "LIVE AT 8:00 PM" removed completely)
- * - Single centered username text in green pill badge
+ * Overlay SVG Frame for Official Hacker House Goa Template
+ * ALL text elements are converted to pure SVG vector paths so NO font rendering boxes exist.
  */
 function getOfficialHhGoaFrameOverlaySvg(params: {
   size: number;
@@ -161,7 +158,7 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
 
   const radius = circleDiameter / 2;
 
-  // Vector Typography
+  // Pure SVG Vector Typography for ALL text in the graphic
   const dateVectorText = renderVectorText({
     text: "GOA, INDIA • 28 - 31 OCT 2026",
     x: 60,
@@ -173,15 +170,36 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
     align: "left",
   });
 
-  // Username vector text (Centered inside pill badge with NO time subtext!)
   const usernameVectorText = renderVectorText({
     text: username,
     x: 520,
     y: 728,
-    fontSize: 28,
+    fontSize: 26,
     stroke: "#FFFFFF",
     strokeWidth: 4.0,
     letterSpacing: 2,
+    align: "center",
+  });
+
+  const sealGoaText = renderVectorText({
+    text: "GOA 2026",
+    x: 375,
+    y: 825,
+    fontSize: 13,
+    stroke: "#FFFFFF",
+    strokeWidth: 2.5,
+    letterSpacing: 2,
+    align: "center",
+  });
+
+  const goaBeachShackText = renderVectorText({
+    text: "GOA BEACH",
+    x: 800,
+    y: 730,
+    fontSize: 10,
+    stroke: "#FFFFFF",
+    strokeWidth: 2.0,
+    letterSpacing: 1,
     align: "center",
   });
 
@@ -239,7 +257,7 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
     <!-- Hot Pink "गोवा" Badge overlaying middle -->
     ${goaBadge}
 
-    <!-- Header Subtitle Text (NO 2:47 PM STUDIO time text!) -->
+    <!-- Header Subtitle Text -->
     ${dateVectorText}
 
     <!-- 2. SUNSHINE & BIRDS IN TOP BACKGROUND -->
@@ -284,8 +302,8 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
       <rect x="0" y="35" width="120" height="75" fill="#064426" stroke="#FFFFFF" stroke-width="2.5" />
       <polygon points="-12,35 60,8 132,35" fill="#042816" stroke="#FFFFFF" stroke-width="2.5" />
       <rect x="15" y="-4" width="90" height="22" rx="5" fill="#FF007F" stroke="#FFFFFF" stroke-width="1.5" />
-      <text x="60" y="11" font-family="sans-serif" font-weight="900" font-size="10" fill="#FFFFFF" text-anchor="middle">GOA BEACH</text>
     </g>
+    ${goaBeachShackText}
 
     <!-- Beach Houses at Bottom -->
     <g transform="translate(100, 830)">
@@ -319,10 +337,8 @@ function getOfficialHhGoaFrameOverlaySvg(params: {
         <path d="M 0 0 H 16 V 35 H 42 V 0 H 58 V 70 H 42 V 48 H 16 V 70 H 0 Z" />
         <path d="M 46 -6 L 56 -16 H 72 L 62 -6 Z" fill="#FF007F" />
       </g>
-
-      <!-- Arc Subtext "GOA 2026" -->
-      <text x="85" y="145" font-family="sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">GOA 2026</text>
     </g>
+    ${sealGoaText}
 
     <!-- Bottom Username / Handle Pill Badge (Clean single pill with NO time text!) -->
     <g transform="translate(330, 695)" filter="url(#shadow)">
