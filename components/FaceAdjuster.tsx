@@ -12,7 +12,6 @@ interface FaceAdjusterProps {
   onChangeScale: (scale: number) => void;
   onChangeOffsetX: (x: number) => void;
   onChangeOffsetY: (y: number) => void;
-  frameStyle?: string;
   isBuilderCard?: boolean;
 }
 
@@ -24,7 +23,6 @@ export default function FaceAdjuster({
   onChangeScale,
   onChangeOffsetX,
   onChangeOffsetY,
-  frameStyle = "sunset-cyber",
   isBuilderCard = false,
 }: FaceAdjusterProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,7 +45,7 @@ export default function FaceAdjuster({
     if (imgRef.current) {
       renderCanvas();
     }
-  }, [scale, offsetX, offsetY, frameStyle, isBuilderCard]);
+  }, [scale, offsetX, offsetY, isBuilderCard]);
 
   const renderCanvas = () => {
     const canvas = canvasRef.current;
@@ -108,10 +106,10 @@ export default function FaceAdjuster({
   };
 
   return (
-    <div className="w-full glass-card rounded-3xl p-5 space-y-5">
+    <div className="w-full glass-card rounded-3xl p-5 space-y-5 border border-[#FFDE00]/40 bg-[#042917]/90">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-          <Move className="w-4 h-4 text-[#00F2FE]" /> Crop & Position Controls
+        <h4 className="text-sm font-bold text-[#FFDE00] flex items-center gap-2">
+          <Move className="w-4 h-4 text-[#FF007F]" /> Crop & Position Controls
         </h4>
 
         <div className="flex items-center gap-2">
@@ -119,7 +117,7 @@ export default function FaceAdjuster({
             type="button"
             onClick={handleAutoDetectFace}
             disabled={isDetecting}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-300 text-xs font-bold hover:bg-orange-500/30 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FF007F]/20 border border-[#FF007F]/40 text-pink-300 text-xs font-bold hover:bg-[#FF007F]/30 transition-all disabled:opacity-50"
           >
             <Sparkles className={`w-3.5 h-3.5 ${isDetecting ? "animate-spin" : ""}`} />
             <span>{isDetecting ? "Detecting..." : "Auto-Center Face"}</span>
@@ -143,7 +141,7 @@ export default function FaceAdjuster({
       )}
 
       {/* Interactive Live Canvas */}
-      <div className="relative w-full max-h-[360px] flex items-center justify-center bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 p-2">
+      <div className="relative w-full max-h-[360px] flex items-center justify-center bg-[#021C0E] rounded-2xl overflow-hidden border border-[#FFDE00]/30 p-2">
         <canvas
           ref={canvasRef}
           className="max-h-[340px] w-auto object-contain rounded-xl shadow-md"
@@ -154,9 +152,9 @@ export default function FaceAdjuster({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
         {/* Zoom Slider */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-slate-300 font-semibold">
+          <div className="flex items-center justify-between text-xs text-slate-200 font-semibold">
             <span className="flex items-center gap-1">
-              <ZoomIn className="w-3.5 h-3.5 text-cyan-400" /> Zoom
+              <ZoomIn className="w-3.5 h-3.5 text-[#FFDE00]" /> Zoom
             </span>
             <span>{Math.round(scale * 100)}%</span>
           </div>
@@ -167,13 +165,13 @@ export default function FaceAdjuster({
             step="0.05"
             value={scale}
             onChange={(e) => onChangeScale(parseFloat(e.target.value))}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#00F2FE]"
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#FFDE00]"
           />
         </div>
 
         {/* Pan X Slider */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-slate-300 font-semibold">
+          <div className="flex items-center justify-between text-xs text-slate-200 font-semibold">
             <span>Horizontal Shift</span>
             <span>{Math.round(offsetX * 100)}</span>
           </div>
@@ -184,13 +182,13 @@ export default function FaceAdjuster({
             step="0.02"
             value={offsetX}
             onChange={(e) => onChangeOffsetX(parseFloat(e.target.value))}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500"
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#FF007F]"
           />
         </div>
 
         {/* Pan Y Slider */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-slate-300 font-semibold">
+          <div className="flex items-center justify-between text-xs text-slate-200 font-semibold">
             <span>Vertical Shift</span>
             <span>{Math.round(offsetY * 100)}</span>
           </div>
@@ -201,7 +199,7 @@ export default function FaceAdjuster({
             step="0.02"
             value={offsetY}
             onChange={(e) => onChangeOffsetY(parseFloat(e.target.value))}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500"
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#FF007F]"
           />
         </div>
       </div>

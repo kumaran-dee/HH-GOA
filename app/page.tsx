@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import HeroHeader from "@/components/HeroHeader";
 import ImageUploader from "@/components/ImageUploader";
 import FaceAdjuster from "@/components/FaceAdjuster";
-import FrameCustomizer, { FrameStyleOption } from "@/components/FrameCustomizer";
 import GraphicPreview from "@/components/GraphicPreview";
 import { ArrowRight, Loader2, Wand2, User, Sparkles } from "lucide-react";
 
@@ -20,9 +19,6 @@ export default function HomePage() {
   const [scale, setScale] = useState(1.0);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
-
-  // Frame Options
-  const [frameStyle, setFrameStyle] = useState<FrameStyleOption>("emerald-goa");
 
   // Generation Output State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -66,7 +62,6 @@ export default function HomePage() {
           format: "pfp",
           imageBase64: selectedImageSrc,
           username: username || "usernamehere",
-          frameStyle,
           scale,
           offsetX,
           offsetY,
@@ -156,14 +151,7 @@ export default function HomePage() {
                     onChangeScale={setScale}
                     onChangeOffsetX={setOffsetX}
                     onChangeOffsetY={setOffsetY}
-                    frameStyle={frameStyle}
                     isBuilderCard={false}
-                  />
-
-                  {/* Frame Customizer */}
-                  <FrameCustomizer
-                    selectedStyle={frameStyle}
-                    onSelectStyle={setFrameStyle}
                   />
 
                   {/* Error Notification */}
