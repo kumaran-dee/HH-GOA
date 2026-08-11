@@ -13,13 +13,13 @@ export interface GeneratePfpOptions {
 /**
  * Generate Official Hacker House Goa 2026 Circular PFP Frame (1024x1024 PNG)
  * Direct template compositing with clean overlay:
- * 1. Composites user photo into central circular window (left: 246, top: 202, diameter: 512px)
+ * 1. Composites user photo into center window (left: 246, top: 202, diameter: 512px)
  * 2. Solid large pill patch (width: 490px, height: 92px) completely covering old pill & LIVE AT 8:00 PM
- * 3. Crisp solid white username text (fill: #FFFFFF)
+ * 3. Crisp solid white username text (default "part of HHG")
  * 4. Seamless top right background blend removing 2:47 PM STUDIO
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
-  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "builder" } = options;
+  const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "part of HHG" } = options;
 
   const targetSize = 1024;
 
@@ -45,8 +45,6 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const circleDiameter = 512;
   const circleLeft = 246;
   const circleTop = 202;
-  const circleCenterX = circleLeft + circleDiameter / 2;
-  const circleCenterY = circleTop + circleDiameter / 2;
 
   const userImg = sharp(imageBuffer);
   const metadata = await userImg.metadata();
@@ -83,8 +81,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .toBuffer();
 
   // Clean username handle format
-  const rawName = username.trim() || "builder";
-  const formattedUsername = rawName.startsWith("@") ? rawName : `@${rawName}`;
+  const rawName = username.trim() || "part of HHG";
 
   // Clean Overlay SVG:
   // - Covers top right "2:47 PM STUDIO" with exact background color (#064426)
@@ -113,11 +110,11 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
       y="743"
       font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
       font-weight="900"
-      font-size="30"
+      font-size="28"
       fill="#FFFFFF"
       text-anchor="middle"
-      letter-spacing="2"
-    >${escapeXml(formattedUsername)}</text>
+      letter-spacing="1.5"
+    >${escapeXml(rawName)}</text>
   </svg>
   `;
 
@@ -174,6 +171,6 @@ export async function generateBuilderCard(options: {
     scale: options.scale,
     offsetX: options.offsetX,
     offsetY: options.offsetY,
-    username: options.name || "builder",
+    username: options.name || "part of HHG",
   });
 }

@@ -12,8 +12,8 @@ export default function HomePage() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // Username / Handle Input (as shown in official template image)
-  const [username, setUsername] = useState("usernamehere");
+  // Username / Handle Input (Default set to "part of HHG" as requested)
+  const [username, setUsername] = useState("part of HHG");
 
   // Crop & Positioning State
   const [scale, setScale] = useState(1.0);
@@ -61,7 +61,7 @@ export default function HomePage() {
         body: JSON.stringify({
           format: "pfp",
           imageBase64: selectedImageSrc,
-          username: username || "usernamehere",
+          username: username || "part of HHG",
           scale,
           offsetX,
           offsetY,
@@ -125,19 +125,19 @@ export default function HomePage() {
                   <div className="glass-card rounded-3xl p-5 space-y-4 border border-[#FFDE00]/40 bg-[#042917]/90">
                     <div className="flex items-center gap-2 border-b border-emerald-800/80 pb-3">
                       <Sparkles className="w-4 h-4 text-[#FFDE00]" />
-                      <h4 className="text-sm font-extrabold text-[#FFDE00]">Username / Handle</h4>
+                      <h4 className="text-sm font-extrabold text-[#FFDE00]">Badge Text / Handle</h4>
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-[#FF007F]" /> Your Username or Name
+                        <User className="w-3.5 h-3.5 text-[#FF007F]" /> Your Text or Name
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. usernamehere or Satoshi"
+                        placeholder="e.g. part of HHG or Satoshi"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500"
+                        className="w-full px-4 py-2.5 rounded-xl glass-input text-sm font-semibold placeholder:text-slate-500 text-white bg-slate-900/60 border border-emerald-700/50"
                       />
                     </div>
                   </div>
