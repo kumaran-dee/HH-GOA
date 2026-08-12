@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, MouseEvent, TouchEvent } from "react";
-import { Move, RotateCcw, Sparkles, ZoomIn, ZoomOut } from "lucide-react";
+import { Move, RotateCcw, Sparkles } from "lucide-react";
 import { detectFaceCrop } from "@/lib/face-detection";
 
 interface FaceAdjusterProps {
@@ -206,14 +206,6 @@ export default function FaceAdjuster({
     onChangeOffsetY(0);
   };
 
-  const zoomOut = () => {
-    onChangeScale(Math.max(1.0, scale - 0.15));
-  };
-
-  const zoomIn = () => {
-    onChangeScale(Math.min(2.5, scale + 0.15));
-  };
-
   return (
     <div className="w-full glass-card rounded-3xl p-4 sm:p-5 space-y-4 border border-[#FFDE00]/40 bg-[#042917]/90">
       <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
@@ -250,7 +242,7 @@ export default function FaceAdjuster({
       )}
 
       {/* Interactive Circular Preview Container */}
-      <div className="flex flex-col items-center justify-center py-2 space-y-4">
+      <div className="flex flex-col items-center justify-center py-2">
         <div
           ref={containerRef}
           onMouseDown={handleMouseDown}
@@ -265,79 +257,7 @@ export default function FaceAdjuster({
           } transition-transform touch-none`}
         >
           <canvas ref={canvasRef} className="w-full h-full object-cover pointer-events-none" />
-
-          {/* Drag Hint Overlay */}
-          <div className="absolute inset-0 border-2 border-white/20 rounded-full pointer-events-none flex items-center justify-center">
-            <div className="opacity-0 hover:opacity-100 transition-opacity bg-black/60 text-white text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none">
-              Drag photo • Pinch to zoom
-            </div>
-          </div>
         </div>
-
-        {/* Mobile & Desktop Dedicated Zoom Controls */}
-        <div className="w-full max-w-xs space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-200">
-            <span className="flex items-center gap-1">
-              <ZoomOut className="w-3.5 h-3.5 text-[#FFDE00]" /> Zoom Level
-            </span>
-            <span className="text-[#FFDE00] font-mono">{scale.toFixed(2)}x</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={zoomOut}
-              disabled={scale <= 1.0}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 disabled:opacity-40 transition-colors active:scale-95 shrink-0"
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-
-            <input
-              type="range"
-              min="1.0"
-              max="2.5"
-              step="0.02"
-              value={scale}
-              onChange={(e) => onChangeScale(parseFloat(e.target.value))}
-              className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer border border-emerald-800/80 accent-[#FFDE00]"
-            />
-
-            <button
-              type="button"
-              onClick={zoomIn}
-              disabled={scale >= 2.5}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 disabled:opacity-40 transition-colors active:scale-95 shrink-0"
-              title="Zoom In"
-            >
-              <ZoomIn className="w-4 h-4 text-[#FFDE00]" />
-            </button>
-          </div>
-
-          {/* Preset Zoom Quick Buttons */}
-          <div className="flex items-center justify-center gap-1.5 pt-1">
-            {[1.0, 1.3, 1.8, 2.2].map((presetScale) => (
-              <button
-                key={presetScale}
-                type="button"
-                onClick={() => onChangeScale(presetScale)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  Math.abs(scale - presetScale) < 0.08
-                    ? "bg-[#FFDE00] text-slate-950 shadow-md scale-105"
-                    : "bg-slate-900/80 text-slate-300 border border-slate-800 hover:bg-slate-800"
-                }`}
-              >
-                {presetScale.toFixed(1)}x
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* User Interaction Guide */}
-        <p className="text-[11px] sm:text-xs text-slate-300 font-semibold text-center flex items-center justify-center gap-1.5 bg-emerald-950/60 px-3.5 py-1.5 rounded-full border border-emerald-800/60 max-w-full">
-          <span className="text-[#FFDE00]">💡 Tip:</span> Drag photo to center • Use zoom slider or pinch on mobile
-        </p>
       </div>
     </div>
   );
