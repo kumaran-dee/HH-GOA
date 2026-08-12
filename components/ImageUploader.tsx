@@ -105,14 +105,14 @@ export default function ImageUploader({
             />
           </div>
 
-          <div className="flex items-center justify-between w-full px-2 text-xs">
-            <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Photo Loaded Successfully
+          <div className="flex items-center justify-between w-full px-2 text-xs gap-2">
+            <span className="text-emerald-400 font-semibold flex items-center gap-1.5 truncate">
+              <Sparkles className="w-3.5 h-3.5 shrink-0" /> Photo Loaded
             </span>
             <button
               type="button"
               onClick={onClearImage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors font-medium"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 transition-all font-medium text-xs shrink-0"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Change Photo
             </button>
@@ -124,10 +124,10 @@ export default function ImageUploader({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative cursor-pointer glass-card rounded-3xl p-8 sm:p-10 border-2 border-dashed text-center transition-all duration-300 flex flex-col items-center justify-center gap-4 ${
+          className={`relative cursor-pointer glass-card rounded-3xl p-6 sm:p-10 border-2 border-dashed text-center transition-all duration-300 flex flex-col items-center justify-center gap-3 sm:gap-4 ${
             isDragging
               ? "border-[#00F2FE] bg-cyan-950/20 scale-[1.01]"
-              : "border-slate-700/80 hover:border-slate-500 hover:bg-slate-900/60"
+              : "border-slate-700/80 hover:border-slate-500 hover:bg-slate-900/60 active:scale-[0.99]"
           }`}
         >
           <input
@@ -147,25 +147,25 @@ export default function ImageUploader({
             </div>
           ) : (
             <>
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 text-[#00F2FE] shadow-xl group-hover:scale-110 transition-transform">
-                <Upload className="w-8 h-8" />
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 text-[#00F2FE] shadow-xl group-hover:scale-110 transition-transform">
+                <Upload className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
 
               <div className="space-y-1">
                 <h4 className="text-base sm:text-lg font-bold text-white">
-                  Drop your photo here, or <span className="text-[#00F2FE] underline">browse</span>
+                  Tap to upload photo <span className="text-[#00F2FE] font-medium hidden sm:inline">(or drag here)</span>
                 </h4>
                 <p className="text-xs text-slate-400">
                   Supports JPG, PNG & iPhone HEIC (Up to 10 MB)
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
-                <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+              <div className="flex items-center justify-center flex-wrap gap-2 pt-1">
+                <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-semibold flex items-center gap-1">
                   <FileImage className="w-3 h-3 text-emerald-400" /> High-Res Render
                 </span>
-                <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-400 font-semibold flex items-center gap-1">
-                  <Camera className="w-3 h-3 text-orange-400" /> Mobile & Gallery
+                <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-semibold flex items-center gap-1">
+                  <Camera className="w-3 h-3 text-orange-400" /> Camera & Gallery
                 </span>
               </div>
             </>

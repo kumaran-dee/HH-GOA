@@ -1,12 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoaBeachBackground from "@/components/GoaBeachBackground";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#04331C",
+};
 
 export const metadata: Metadata = {
   title: "FrameInGoa — Hacker House Goa 2026 Social Frames & Builder Badges",
@@ -47,12 +56,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${outfit.variable} antialiased bg-[#06381F] text-white min-h-screen flex flex-col justify-between selection:bg-[#FFDE00] selection:text-slate-950`}>
+        <ScrollToTop />
         {/* Official Hacker House Goa Beach Background Illustration */}
         <GoaBeachBackground />
 
         <Navbar />
         
-        <main className="relative z-10 flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+        <main className="relative z-10 flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           {children}
         </main>
 
