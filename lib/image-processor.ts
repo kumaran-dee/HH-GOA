@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
-import { renderVectorText } from "./svg-vector-text";
+import { renderVectorText, calculateOptimalTypography } from "./svg-vector-text";
 
 export interface GeneratePfpOptions {
   imageBuffer: Buffer;
@@ -16,7 +16,7 @@ export interface GeneratePfpOptions {
  * 1. Perfectly fits user photo inside the circular frame window (left: 250, top: 194, diameter: 524px)
  * 2. Overlays pristine yellow & white frame rings for zero gap alignment
  * 3. Erases old pill shape & LIVE AT 8:00 PM with seamless ocean green fill (#085732)
- * 4. Renders user's custom input name (default "BUILDER") via SVG vector path (zero tofu boxes)
+ * 4. Renders user's custom input name (default "BUILDER") with dynamic font size & letter spacing
  */
 export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buffer> {
   const { imageBuffer, scale = 1, offsetX = 0, offsetY = 0, username = "BUILDER" } = options;
@@ -85,15 +85,18 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   // Clean username text (Capitalized)
   const rawName = (username.trim() || "BUILDER").toUpperCase();
 
+  // Dynamic Typography calculation for perfect font size, letter spacing & vertical centering inside the pill badge
+  const { fontSize, letterSpacing, strokeWidth, topY } = calculateOptimalTypography(rawName, 580, 720);
+
   // Pure SVG Vector Typography for User Name (100% font-independent, ZERO tofu boxes)
   const nameVectorPathSvg = renderVectorText({
     text: rawName,
     x: circleCenterX,
-    y: 724,
-    fontSize: 24,
+    y: topY,
+    fontSize,
     stroke: "#FFFFFF",
-    strokeWidth: 2.8,
-    letterSpacing: 2,
+    strokeWidth,
+    letterSpacing,
     align: "center",
   });
 
