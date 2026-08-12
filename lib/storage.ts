@@ -1,6 +1,6 @@
 export interface StoredGraphic {
   id: string;
-  format: "pfp" | "builder-card";
+  format: "pfp" | "builder-card" | "id-card";
   imageDataUri: string;
   name?: string;
   role?: string;

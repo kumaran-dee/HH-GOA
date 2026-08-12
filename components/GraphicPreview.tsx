@@ -17,6 +17,7 @@ export default function GraphicPreview({
   imageDataUri,
   shareUrl,
   fileName,
+  format = "id-card",
   onReset,
 }: GraphicPreviewProps) {
   const [copied, setCopied] = useState(false);
@@ -94,11 +95,13 @@ export default function GraphicPreview({
       {/* Top Tag Header */}
       <div className="flex items-center justify-between w-full border-b border-slate-800 pb-3 gap-2">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-orange-400 shrink-0" />
-          <h3 className="text-base sm:text-lg font-extrabold text-white">Your PFP Frame is Ready!</h3>
+          <Sparkles className="w-5 h-5 text-[#FFDE00] shrink-0" />
+          <h3 className="text-base sm:text-lg font-extrabold text-white">
+            {format === "id-card" ? "Your Official Builder ID Card is Ready!" : "Your PFP Frame is Ready!"}
+          </h3>
         </div>
-        <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] sm:text-xs font-bold shrink-0">
-          1024x1024 PNG
+        <span className="px-2.5 py-1 rounded-full bg-[#FFDE00]/10 border border-[#FFDE00]/30 text-[#FFDE00] text-[11px] sm:text-xs font-bold shrink-0">
+          {format === "id-card" ? "1024x648 CR80 PNG" : "1024x1024 PNG"}
         </span>
       </div>
 

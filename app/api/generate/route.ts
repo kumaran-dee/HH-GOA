@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatePfpFrame, generateBuilderCard } from "@/lib/image-processor";
+import { generatePfpFrame, generateBuilderCard, generateIdCardFrame } from "@/lib/image-processor";
 import { saveGraphic } from "@/lib/storage";
 
 export async function POST(req: NextRequest) {
   try {
     const contentType = req.headers.get("content-type") || "";
 
-    let format: "pfp" | "builder-card" = "pfp";
+    let format: "pfp" | "builder-card" | "id-card" = "id-card";
     let imageBuffer: Buffer | null = null;
     let name = "";
     let role = "";
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
-      format = (formData.get("format") as "pfp" | "builder-card") || "pfp";
+      format = (formData.get("format") as any) || "id-card";
       name = (formData.get("name") as string) || "";
       role = (formData.get("role") as string) || "";
       title = (formData.get("title") as string) || "";
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       const body = await req.json();
-      format = body.format || "pfp";
+      format = body.format || "id-card";
       name = body.username || body.name || "";
       role = body.role || "";
       title = body.title || "";
@@ -55,15 +55,13 @@ export async function POST(req: NextRequest) {
 
     let generatedPngBuffer: Buffer;
 
-    if (format === "builder-card") {
-      generatedPngBuffer = await generateBuilderCard({
+    if (format === "id-card" || format === "builder-card") {
+      generatedPngBuffer = await generateIdCardFrame({
         imageBuffer,
-        name,
-        role,
-        title,
         scale,
         offsetX,
         offsetY,
+        username: name || "BUILDER",
       });
     } else {
       generatedPngBuffer = await generatePfpFrame({
@@ -71,7 +69,7 @@ export async function POST(req: NextRequest) {
         scale,
         offsetX,
         offsetY,
-        username: name || "part of HHG",
+        username: name || "BUILDER",
       });
     }
 

@@ -12,6 +12,9 @@ export default function HomePage() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
+  // Format selection state (ID Card vs Square PFP Frame)
+  const [format, setFormat] = useState<"id-card" | "pfp">("id-card");
+
   // Username / Handle Input (Capitalized set to "BUILDER" as requested)
   const [username, setUsername] = useState("BUILDER");
 
@@ -59,7 +62,7 @@ export default function HomePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          format: "pfp",
+          format,
           imageBase64: selectedImageSrc,
           username: username || "BUILDER",
           scale,
@@ -71,7 +74,7 @@ export default function HomePage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to generate PFP frame graphic.");
+        throw new Error(data.error || "Failed to generate graphic.");
       }
 
       setGeneratedOutput({
@@ -99,7 +102,7 @@ export default function HomePage() {
             imageDataUri={generatedOutput.imageDataUri}
             shareUrl={generatedOutput.shareUrl}
             fileName={generatedOutput.fileName}
-            format="pfp"
+            format={format}
             onReset={() => setGeneratedOutput(null)}
           />
         ) : (
@@ -121,6 +124,64 @@ export default function HomePage() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6 overflow-hidden"
                 >
+                  {/* Card Format Selector */}
+                  <div className="glass-card rounded-3xl p-5 space-y-3 border border-[#FFDE00]/40 bg-[#042917]/90">
+                    <div className="flex items-center justify-between border-b border-emerald-800/80 pb-3">
+                      <h4 className="text-sm font-extrabold text-[#FFDE00] flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[#FF007F]" /> Choose Graphic Format
+                      </h4>
+                      <span className="text-[11px] font-bold text-[#FF007F] bg-[#FF007F]/10 px-2.5 py-0.5 rounded-full border border-[#FF007F]/30">
+                        {format === "id-card" ? "CR80 ID Card Size" : "Square PFP 1:1"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setFormat("id-card")}
+                        className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between active:scale-95 ${
+                          format === "id-card"
+                            ? "bg-[#FFDE00] text-slate-950 border-white shadow-xl scale-[1.01]"
+                            : "bg-slate-900/80 text-slate-200 border-slate-700/80 hover:border-slate-500"
+                        }`}
+                      >
+                        <div>
+                          <div className="text-sm font-black flex items-center gap-1.5">
+                            🪪 ID Card Badge Pass
+                          </div>
+                          <p className={`text-xs mt-0.5 font-semibold ${format === "id-card" ? "text-slate-900" : "text-slate-400"}`}>
+                            Standard 1024x648 ID Card Ratio
+                          </p>
+                        </div>
+                        {format === "id-card" && (
+                          <span className="w-3 h-3 rounded-full bg-[#FF007F] shadow-sm shrink-0" />
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setFormat("pfp")}
+                        className={`p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between active:scale-95 ${
+                          format === "pfp"
+                            ? "bg-[#FFDE00] text-slate-950 border-white shadow-xl scale-[1.01]"
+                            : "bg-slate-900/80 text-slate-200 border-slate-700/80 hover:border-slate-500"
+                        }`}
+                      >
+                        <div>
+                          <div className="text-sm font-black flex items-center gap-1.5">
+                            🖼️ Square Profile Frame
+                          </div>
+                          <p className={`text-xs mt-0.5 font-semibold ${format === "pfp" ? "text-slate-900" : "text-slate-400"}`}>
+                            Square 1024x1024 PFP Frame
+                          </p>
+                        </div>
+                        {format === "pfp" && (
+                          <span className="w-3 h-3 rounded-full bg-[#FF007F] shadow-sm shrink-0" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Handle Input Card */}
                   <div className="glass-card rounded-3xl p-5 space-y-4 border border-[#FFDE00]/40 bg-[#042917]/90">
                     <div className="flex items-center justify-between border-b border-emerald-800/80 pb-3">
