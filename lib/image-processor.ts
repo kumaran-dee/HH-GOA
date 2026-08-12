@@ -63,10 +63,10 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
   const left = Math.max(0, Math.min(srcW - cropW, Math.round(baseLeft - offsetX * srcW)));
   const top = Math.max(0, Math.min(srcH - cropH, Math.round(baseTop - offsetY * srcH)));
 
-  // Crop & resize user photo to circle diameter
+  // Crop & resize user photo to circle diameter with Lanczos3 ultra-sharp kernel
   const resizedAvatar = await userImg
     .extract({ left, top, width: cropW, height: cropH })
-    .resize(circleDiameter, circleDiameter, { fit: "cover" })
+    .resize(circleDiameter, circleDiameter, { fit: "cover", kernel: "lanczos3" })
     .png()
     .toBuffer();
 
@@ -153,7 +153,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
     .png()
     .toBuffer();
 
-  // Step 2: Composite clean overlay on top
+  // Step 2: Composite clean overlay on top with 100% pristine PNG quality
   const finalImage = await sharp(avatarOnTemplate)
     .composite([
       {
@@ -162,7 +162,7 @@ export async function generatePfpFrame(options: GeneratePfpOptions): Promise<Buf
         top: 0,
       },
     ])
-    .png({ quality: 95 })
+    .png({ compressionLevel: 6, adaptiveFiltering: true, quality: 100 })
     .toBuffer();
 
   return finalImage;

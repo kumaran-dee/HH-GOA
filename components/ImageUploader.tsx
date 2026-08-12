@@ -23,10 +23,10 @@ export default function ImageUploader({
   const processFile = async (file: File) => {
     setErrorMessage(null);
 
-    // Max size check: 10 MB = 10 * 1024 * 1024 bytes
-    const MAX_SIZE = 10 * 1024 * 1024;
+    // Max size check: 50 MB = 50 * 1024 * 1024 bytes (supports DSLR, ProRAW, 4K/8K photos)
+    const MAX_SIZE = 50 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      setErrorMessage("File size exceeds 10 MB. Please upload a smaller image.");
+      setErrorMessage("File size exceeds 50 MB. Please upload a smaller image.");
       return;
     }
 
@@ -156,16 +156,16 @@ export default function ImageUploader({
                   Tap to upload photo <span className="text-[#00F2FE] font-medium hidden sm:inline">(or drag here)</span>
                 </h4>
                 <p className="text-xs text-slate-400">
-                  Supports JPG, PNG & iPhone HEIC (Up to 10 MB)
+                  Supports High-Res JPG, PNG & iPhone HEIC / ProRAW (Up to 50 MB)
                 </p>
               </div>
 
               <div className="flex items-center justify-center flex-wrap gap-2 pt-1">
                 <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-semibold flex items-center gap-1">
-                  <FileImage className="w-3 h-3 text-emerald-400" /> High-Res Render
+                  <FileImage className="w-3 h-3 text-emerald-400" /> Ultra High-Res Render
                 </span>
                 <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-semibold flex items-center gap-1">
-                  <Camera className="w-3 h-3 text-orange-400" /> Camera & Gallery
+                  <Camera className="w-3 h-3 text-orange-400" /> DSLR, Camera & Gallery
                 </span>
               </div>
             </>
